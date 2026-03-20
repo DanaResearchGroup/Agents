@@ -1,0 +1,87 @@
+Overview
+
+The goal of the workflow is to evaluate and improve chemical kinetic models using two independent paths.
+At this stage we avoid continuous automated iteration and instead focus on structured comparison and targeted improvements.
+
+Both paths will run simulations and compare model results against user-provided experimental data using Mean Absolute Error (MAE).
+
+Experimental data will be supplied in a YAML file containing:
+
+* reactor type
+
+* temperature and pressure
+
+* initial mixture composition
+
+* observable tyoe (species labe or global IDT/SL/K_ext)
+
+* measured observable
+
+* acceptable error threshold
+
+The system will output a YAML report summarizing model performance and any tested modifications.
+
+--------------
+
+Path 1 – Literature Model Evaluation
+
+Objective: Compare the original model against published literature mechanisms.
+
+Workflow:
+
+
+** ADD HERE: Writing a module that determined MAEs for any given model and exp. YAML file
+
+
+1. Retrieve literature models
+
+* Locate Supplementary Information (SI) from relevant papers.
+
+* Identify mechanism files (typically Chemkin format).
+
+2. Convert mechanism format
+
+* Convert Chemkin mechanisms to Cantera YAML format for simulation, and solving issues using the T3 functions (https://github.com/ReactionMechanismGenerator/T3/blob/main/t3/utils/fix_cantera.py).
+
+3. Identify simulation conditions
+
+* Use an LLM or parser to identify reactants, oxidizers, and reactor conditions described in the paper.
+
+4. Run simulations
+
+* Run the literature model independently.
+
+* Run the original model independently.
+
+* Do not mix reactions between models.
+
+5. Evaluate model performance
+
+* Compare simulated results with experimental data.
+
+* Compute Mean Absolute Error (MAE).
+
+6. Produce evaluation report
+
+* Report MAE for each model.
+
+* Identify whether the literature model performs better than the original model.
+
+Important rule:
+The literature mechanism must remain independent. No reactions should be merged into the original model in this path.
+
+--------------
+
+Final Output
+
+The system will generate a structured YAML report containing:
+
+* model comparison results
+
+* MAE values for each tested model
+
+* reactions added in each model branch
+
+* performance relative to the acceptable error threshold
+
+The report format is designed to be machine-readable so that downstream tools or agents can further analyze the results.

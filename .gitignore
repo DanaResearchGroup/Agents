@@ -1,3 +1,20 @@
 .env
 Agent_demo/.env
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# OS
+.DS_Store

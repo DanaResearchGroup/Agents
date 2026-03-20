@@ -1,0 +1,729 @@
+[
+  {
+    "id": "crossref_10.1021/acsomega.5c11182.s001",
+    "title": "Using RMG Out-of-the-Box for Formic Acid Pyrolysis and Oxidation",
+    "authors": [],
+    "year": null,
+    "journal": "ACS omega",
+    "doi": "10.1021/acsomega.5c11182.s001",
+    "abstract": "The predictive modeling of formic acid (HOCHO), the simplest organic acid and a central intermediate in combustion chemistry, is of fundamental importance. Prior literature work [<i>Energy Fuels</i> <b>2022,</b> <i>36,</i> 23, 14,382-14,392] reported challenges in reproducing jet-stirred reactor (JSR) speciation with an automatically generated model, suggesting that hand-tuned mechanisms might be required. Here, we revisit this assessment. We demonstrate that an out-of-the-box, fully automated predictive model, built deliberately without quantum-chemical refinement or ad hoc fitting, reliably captures formic acid JSR oxidation speciation across 550-1150 K and an equivalence ratio range of 0.5-2.0 as well as laminar burning velocity observations. We further reveal that the model's remaining discrepancies, which appear under pyrolysis conditions, stem from a core issue masked in prior work [<i>Combust. Flame</i> <b>2021,</b> <i>223,</i> 77-87]. Specifically, we show that previous apparent agreement relied on fitted pressure-<b>in</b>dependent rate coefficients that obscured the unresolved pressure-dependent branching ratio between decarboxylation (HOCHO \u21cc CO<sub>2</sub> + H<sub>2</sub>) and dehydration (HOCHO \u21cc CO + H<sub>2</sub>O). This case underscores that genuine scientific advancement requires the transparent discussion of successes alongside remaining challenges rather than masking theoretical discrepancies through parameter fitting or using selective benchmarks. By sacrificing perfect agreement in favor of highlighting true challenges, we establish that predictive, automated chemical kinetic models are already within reach for small oxygenated fuels, and identify the accurate parameterization of pressure-dependent rate coefficients on the CH<sub>2</sub>O<sub>2</sub> surface as the key remaining challenge for fully reliable formic acid modeling.",
+    "source_url": "https://doi.org/10.1021/acsomega.5c11182.s001",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 1.0,
+    "priority": "high",
+    "tags": [
+      "unknown_access",
+      "possible_si",
+      "kinetics_relevant",
+      "possible_mechanism",
+      "high_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: mechanism",
+      "Matched keyword: model",
+      "Matched keyword: pyrolysis",
+      "Matched keyword: oxidation",
+      "Matched keyword: si",
+      "Supplementary information link found",
+      "Mechanism link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "Europe PMC Supplemental Section: https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf",
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip",
+      "https://doi.org/10.1021/acsomega.5c11182.s001"
+    ],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": " SI link 0 is a web supplemental section; see URL for manual review.  SI link 1 is a web supplemental section; see URL for manual review.  Downloaded SI to crossref_10.1021_acsomega.5c11182.s001_si_2.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf.  Downloaded SI to crossref_10.1021_acsomega.5c11182.s001_si_3.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip.  Failed to download SI link 4 (https://doi.org/10.1021/acsomega.5c11182.s001). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.26434/chemrxiv-2025-4pdlb-v2",
+    "title": "Using RMG Out-of-the-Box for Formic Acid Pyrolysis and Oxidation",
+    "authors": [
+      "Alon Grinberg Dana",
+      "Jintao Wu"
+    ],
+    "year": 2025,
+    "journal": "ACS omega",
+    "doi": "10.26434/chemrxiv-2025-4pdlb-v2",
+    "abstract": "The predictive modeling of formic acid (HOCHO), the simplest organic acid and a central intermediate in combustion chemistry, is of fundamental importance. Prior literature work [<i>Energy Fuels</i> <b>2022,</b> <i>36,</i> 23, 14,382-14,392] reported challenges in reproducing jet-stirred reactor (JSR) speciation with an automatically generated model, suggesting that hand-tuned mechanisms might be required. Here, we revisit this assessment. We demonstrate that an out-of-the-box, fully automated predictive model, built deliberately without quantum-chemical refinement or ad hoc fitting, reliably captures formic acid JSR oxidation speciation across 550-1150 K and an equivalence ratio range of 0.5-2.0 as well as laminar burning velocity observations. We further reveal that the model's remaining discrepancies, which appear under pyrolysis conditions, stem from a core issue masked in prior work [<i>Combust. Flame</i> <b>2021,</b> <i>223,</i> 77-87]. Specifically, we show that previous apparent agreement relied on fitted pressure-<b>in</b>dependent rate coefficients that obscured the unresolved pressure-dependent branching ratio between decarboxylation (HOCHO \u21cc CO<sub>2</sub> + H<sub>2</sub>) and dehydration (HOCHO \u21cc CO + H<sub>2</sub>O). This case underscores that genuine scientific advancement requires the transparent discussion of successes alongside remaining challenges rather than masking theoretical discrepancies through parameter fitting or using selective benchmarks. By sacrificing perfect agreement in favor of highlighting true challenges, we establish that predictive, automated chemical kinetic models are already within reach for small oxygenated fuels, and identify the accurate parameterization of pressure-dependent rate coefficients on the CH<sub>2</sub>O<sub>2</sub> surface as the key remaining challenge for fully reliable formic acid modeling.",
+    "source_url": "https://doi.org/10.26434/chemrxiv-2025-4pdlb-v2",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 1.0,
+    "priority": "high",
+    "tags": [
+      "unknown_access",
+      "possible_si",
+      "kinetics_relevant",
+      "possible_mechanism",
+      "high_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: mechanism",
+      "Matched keyword: model",
+      "Matched keyword: pyrolysis",
+      "Matched keyword: oxidation",
+      "Matched keyword: si",
+      "Supplementary information link found",
+      "Mechanism link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip",
+      "Europe PMC Supplemental Section: https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf"
+    ],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": " Downloaded SI to crossref_10.26434_chemrxiv-2025-4pdlb-v2_si_0.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip.  SI link 1 is a web supplemental section; see URL for manual review.  SI link 2 is a web supplemental section; see URL for manual review.  Downloaded SI to crossref_10.26434_chemrxiv-2025-4pdlb-v2_si_3.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf. ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.26434/chemrxiv-2025-4pdlb",
+    "title": "Using RMG Out-of-the-Box for Formic Acid Pyrolysis and Oxidation",
+    "authors": [
+      "Alon Grinberg Dana",
+      "Jintao Wu"
+    ],
+    "year": 2025,
+    "journal": "ACS omega",
+    "doi": "10.26434/chemrxiv-2025-4pdlb",
+    "abstract": "The predictive modeling of formic acid (HOCHO), the simplest organic acid and a central intermediate in combustion chemistry, is of fundamental importance. Prior literature work [<i>Energy Fuels</i> <b>2022,</b> <i>36,</i> 23, 14,382-14,392] reported challenges in reproducing jet-stirred reactor (JSR) speciation with an automatically generated model, suggesting that hand-tuned mechanisms might be required. Here, we revisit this assessment. We demonstrate that an out-of-the-box, fully automated predictive model, built deliberately without quantum-chemical refinement or ad hoc fitting, reliably captures formic acid JSR oxidation speciation across 550-1150 K and an equivalence ratio range of 0.5-2.0 as well as laminar burning velocity observations. We further reveal that the model's remaining discrepancies, which appear under pyrolysis conditions, stem from a core issue masked in prior work [<i>Combust. Flame</i> <b>2021,</b> <i>223,</i> 77-87]. Specifically, we show that previous apparent agreement relied on fitted pressure-<b>in</b>dependent rate coefficients that obscured the unresolved pressure-dependent branching ratio between decarboxylation (HOCHO \u21cc CO<sub>2</sub> + H<sub>2</sub>) and dehydration (HOCHO \u21cc CO + H<sub>2</sub>O). This case underscores that genuine scientific advancement requires the transparent discussion of successes alongside remaining challenges rather than masking theoretical discrepancies through parameter fitting or using selective benchmarks. By sacrificing perfect agreement in favor of highlighting true challenges, we establish that predictive, automated chemical kinetic models are already within reach for small oxygenated fuels, and identify the accurate parameterization of pressure-dependent rate coefficients on the CH<sub>2</sub>O<sub>2</sub> surface as the key remaining challenge for fully reliable formic acid modeling.",
+    "source_url": "https://doi.org/10.26434/chemrxiv-2025-4pdlb",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 1.0,
+    "priority": "high",
+    "tags": [
+      "unknown_access",
+      "possible_si",
+      "kinetics_relevant",
+      "possible_mechanism",
+      "high_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: mechanism",
+      "Matched keyword: model",
+      "Matched keyword: pyrolysis",
+      "Matched keyword: oxidation",
+      "Matched keyword: si",
+      "Supplementary information link found",
+      "Mechanism link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip",
+      "Europe PMC Supplemental Section: https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf"
+    ],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": " Downloaded SI to crossref_10.26434_chemrxiv-2025-4pdlb_si_0.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip.  SI link 1 is a web supplemental section; see URL for manual review.  SI link 2 is a web supplemental section; see URL for manual review.  Downloaded SI to crossref_10.26434_chemrxiv-2025-4pdlb_si_3.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf. ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/acsomega.5c11182.s002",
+    "title": "Using RMG Out-of-the-Box for Formic Acid Pyrolysis and Oxidation",
+    "authors": [],
+    "year": null,
+    "journal": "ACS omega",
+    "doi": "10.1021/acsomega.5c11182.s002",
+    "abstract": "The predictive modeling of formic acid (HOCHO), the simplest organic acid and a central intermediate in combustion chemistry, is of fundamental importance. Prior literature work [<i>Energy Fuels</i> <b>2022,</b> <i>36,</i> 23, 14,382-14,392] reported challenges in reproducing jet-stirred reactor (JSR) speciation with an automatically generated model, suggesting that hand-tuned mechanisms might be required. Here, we revisit this assessment. We demonstrate that an out-of-the-box, fully automated predictive model, built deliberately without quantum-chemical refinement or ad hoc fitting, reliably captures formic acid JSR oxidation speciation across 550-1150 K and an equivalence ratio range of 0.5-2.0 as well as laminar burning velocity observations. We further reveal that the model's remaining discrepancies, which appear under pyrolysis conditions, stem from a core issue masked in prior work [<i>Combust. Flame</i> <b>2021,</b> <i>223,</i> 77-87]. Specifically, we show that previous apparent agreement relied on fitted pressure-<b>in</b>dependent rate coefficients that obscured the unresolved pressure-dependent branching ratio between decarboxylation (HOCHO \u21cc CO<sub>2</sub> + H<sub>2</sub>) and dehydration (HOCHO \u21cc CO + H<sub>2</sub>O). This case underscores that genuine scientific advancement requires the transparent discussion of successes alongside remaining challenges rather than masking theoretical discrepancies through parameter fitting or using selective benchmarks. By sacrificing perfect agreement in favor of highlighting true challenges, we establish that predictive, automated chemical kinetic models are already within reach for small oxygenated fuels, and identify the accurate parameterization of pressure-dependent rate coefficients on the CH<sub>2</sub>O<sub>2</sub> surface as the key remaining challenge for fully reliable formic acid modeling.",
+    "source_url": "https://doi.org/10.1021/acsomega.5c11182.s002",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 1.0,
+    "priority": "high",
+    "tags": [
+      "unknown_access",
+      "possible_si",
+      "kinetics_relevant",
+      "possible_mechanism",
+      "high_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: mechanism",
+      "Matched keyword: model",
+      "Matched keyword: pyrolysis",
+      "Matched keyword: oxidation",
+      "Matched keyword: si",
+      "Supplementary information link found",
+      "Mechanism link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/acsomega.5c11182.s002",
+      "Europe PMC Supplemental Section: https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/articles/PMC12878340#sec5",
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf",
+      "https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip"
+    ],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/acsomega.5c11182.s002).  SI link 1 is a web supplemental section; see URL for manual review.  SI link 2 is a web supplemental section; see URL for manual review.  Downloaded SI to crossref_10.1021_acsomega.5c11182.s002_si_3.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_001.pdf&mimeType=application/pdf.  Downloaded SI to crossref_10.1021_acsomega.5c11182.s002_si_4.file from https://europepmc.org/api/fulltextRepo?pmcId=PMC12878340&type=FILE&fileName=ao5c11182_si_002.zip&mimeType=application/zip. ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.21203/rs.3.rs-223461/v2",
+    "title": "WITHDRAWN: Microscopic Reaction Mechanism of Formic Acid Generated During Pyrolysis of Cellulosic Insulating Paper",
+    "authors": [],
+    "year": 2021,
+    "journal": null,
+    "doi": "10.21203/rs.3.rs-223461/v2",
+    "abstract": "<title>Abstract</title>\n                <p>The full text of this preprint has been withdrawn, as it was submitted in error. Therefore, the authors do not wish this work to be cited as a reference. Questions should be directed to the corresponding author.</p>",
+    "source_url": "https://doi.org/10.21203/rs.3.rs-223461/v2",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.7,
+    "priority": "high",
+    "tags": [
+      "possible_mechanism",
+      "unknown_access",
+      "high_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: mechanism",
+      "Matched keyword: pyrolysis",
+      "Matched keyword: si",
+      "Mechanism link found"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.2139/ssrn.5351321",
+    "title": "Chemical Kinetic Model Generation of Formic Acid Pyrolysis and Oxidation",
+    "authors": [
+      "Jintao Wu",
+      "Alon Grinberg Dana"
+    ],
+    "year": 2025,
+    "journal": null,
+    "doi": "10.2139/ssrn.5351321",
+    "abstract": null,
+    "source_url": "https://doi.org/10.2139/ssrn.5351321",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.7,
+    "priority": "high",
+    "tags": [
+      "kinetics_relevant",
+      "unknown_access",
+      "high_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: model",
+      "Matched keyword: pyrolysis",
+      "Matched keyword: oxidation",
+      "Matched keyword: si",
+      "Mechanism link found"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/acs.energyfuels.3c04958.s001",
+    "title": "Coproduction of 1,4:3,6-Dianhydro-dglucopyranose, Furfural, and Formic Acid through Oxalic Acid-Assisted Staged Fast Pyrolysis of Cellulose",
+    "authors": [],
+    "year": null,
+    "journal": null,
+    "doi": "10.1021/acs.energyfuels.3c04958.s001",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1021/acs.energyfuels.3c04958.s001",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.7,
+    "priority": "high",
+    "tags": [
+      "possible_si",
+      "unknown_access",
+      "high_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: pyrolysis",
+      "Matched keyword: si",
+      "Supplementary information link found",
+      "Mechanism link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/acs.energyfuels.3c04958.s001"
+    ],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/acs.energyfuels.3c04958.s001). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/acssuschemeng.3c06903.s001",
+    "title": "Engineering the Microstructure at Co Single-Atom Sites by Co Nanoparticles Core for Enhanced Formic Acid Selective Dehydrogenation",
+    "authors": [],
+    "year": null,
+    "journal": null,
+    "doi": "10.1021/acssuschemeng.3c06903.s001",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1021/acssuschemeng.3c06903.s001",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.6000000000000001,
+    "priority": "medium",
+    "tags": [
+      "possible_si",
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Supplementary information link found",
+      "Mechanism link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/acssuschemeng.3c06903.s001"
+    ],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/acssuschemeng.3c06903.s001). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/acs.energyfuels.1c03421.s001",
+    "title": "One-Pot Production of 2,5-Furandimethanol from Fructose Co-catalyzed with Formic Acid and Heterogeneous Co Catalysts",
+    "authors": [],
+    "year": null,
+    "journal": null,
+    "doi": "10.1021/acs.energyfuels.1c03421.s001",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1021/acs.energyfuels.1c03421.s001",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.5,
+    "priority": "medium",
+    "tags": [
+      "possible_si",
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Supplementary information link found",
+      "Mechanism link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/acs.energyfuels.1c03421.s001"
+    ],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/acs.energyfuels.1c03421.s001). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1016/j.fuel.2010.04.026",
+    "title": "Oxidative desulfurization of tire pyrolysis naphtha in formic acid/H2O2/pyrolysis char system",
+    "authors": [
+      "Dusadee Bunthid",
+      "Pattarapan Prasassarakich",
+      "Napida Hinchiranan"
+    ],
+    "year": 2010,
+    "journal": "Fuel",
+    "doi": "10.1016/j.fuel.2010.04.026",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1016/j.fuel.2010.04.026",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.4,
+    "priority": "medium",
+    "tags": [
+      "possible_si",
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: pyrolysis",
+      "Matched keyword: si",
+      "Supplementary information link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://api.elsevier.com/content/article/PII:S0016236110001997?httpAccept=text/xml"
+    ],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": " Downloaded SI to crossref_10.1016_j.fuel.2010.04.026_si_0.file from https://api.elsevier.com/content/article/PII:S0016236110001997?httpAccept=text/xml. ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1039/d5mh00130g/v1/review1",
+    "title": "Review for \"Efficient Co-production of Ammonia and Formic Acid from Nitrate and Polyester via Paired Electrolysis\"",
+    "authors": [],
+    "year": 2025,
+    "journal": null,
+    "doi": "10.1039/d5mh00130g/v1/review1",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1039/d5mh00130g/v1/review1",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.4,
+    "priority": "medium",
+    "tags": [
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Mechanism link found"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1039/d5mh00130g/v2/review1",
+    "title": "Review for \"Efficient Co-production of Ammonia and Formic Acid from Nitrate and Polyester via Paired Electrolysis\"",
+    "authors": [],
+    "year": 2025,
+    "journal": null,
+    "doi": "10.1039/d5mh00130g/v2/review1",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1039/d5mh00130g/v2/review1",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.4,
+    "priority": "medium",
+    "tags": [
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Mechanism link found"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1039/d5mh00130g/v1/review2",
+    "title": "Review for \"Efficient Co-production of Ammonia and Formic Acid from Nitrate and Polyester via Paired Electrolysis\"",
+    "authors": [],
+    "year": 2025,
+    "journal": null,
+    "doi": "10.1039/d5mh00130g/v1/review2",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1039/d5mh00130g/v1/review2",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.4,
+    "priority": "medium",
+    "tags": [
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Mechanism link found"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1039/d5mh00130g/v2/review2",
+    "title": "Review for \"Efficient Co-production of Ammonia and Formic Acid from Nitrate and Polyester via Paired Electrolysis\"",
+    "authors": [],
+    "year": 2025,
+    "journal": null,
+    "doi": "10.1039/d5mh00130g/v2/review2",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1039/d5mh00130g/v2/review2",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.4,
+    "priority": "medium",
+    "tags": [
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Mechanism link found"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": true,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1016/j.jaap.2015.04.002",
+    "title": "Fast pyrolysis of muconic acid and formic acid salt mixtures",
+    "authors": [
+      "Jamie St. Pierre",
+      "Laura Duran",
+      "Adriaan van Heiningen"
+    ],
+    "year": 2015,
+    "journal": "Journal of Analytical and Applied Pyrolysis",
+    "doi": "10.1016/j.jaap.2015.04.002",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1016/j.jaap.2015.04.002",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.4,
+    "priority": "medium",
+    "tags": [
+      "possible_si",
+      "unknown_access",
+      "medium_interest"
+    ],
+    "relevance_reason": [
+      "Matched keyword: pyrolysis",
+      "Matched keyword: si",
+      "Supplementary information link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://api.elsevier.com/content/article/PII:S0165237015300103?httpAccept=text/xml"
+    ],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": " Downloaded SI to crossref_10.1016_j.jaap.2015.04.002_si_0.file from https://api.elsevier.com/content/article/PII:S0165237015300103?httpAccept=text/xml. ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/jp0546352.s001",
+    "title": "Car-Parrinello Molecular Dynamics Simulation of Liquid Formic Acid",
+    "authors": [],
+    "year": null,
+    "journal": "The journal of physical chemistry. A",
+    "doi": "10.1021/jp0546352.s001",
+    "abstract": "First-principles molecular dynamics has been used to investigate the structural, vibrational, and energetic properties of formic acid, formic acid-formate anion dimers, and liquid formic acid in a periodically repeated box with 32 formic acid molecules. We found that in liquid formic acid the hydrogen-bonded clusters mainly consist of linear branching chains. From our simulation, we got good agreement with the available structural and dynamical data. We also studied the proton transfer in the cis-formic acid-formate anion dimer, and we showed that this proton transfer does not have any potential barrier. The hydrogen bonding statistics as well as the mean lifetime of the hydrogen bonds are analyzed.",
+    "source_url": "https://doi.org/10.1021/jp0546352.s001",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.30000000000000004,
+    "priority": "low",
+    "tags": [
+      "low_interest",
+      "possible_si",
+      "unknown_access"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Supplementary information link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/jp0546352.s001"
+    ],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/jp0546352.s001). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/jp0546352.s002",
+    "title": "Car-Parrinello Molecular Dynamics Simulation of Liquid Formic Acid",
+    "authors": [],
+    "year": null,
+    "journal": "The journal of physical chemistry. A",
+    "doi": "10.1021/jp0546352.s002",
+    "abstract": "First-principles molecular dynamics has been used to investigate the structural, vibrational, and energetic properties of formic acid, formic acid-formate anion dimers, and liquid formic acid in a periodically repeated box with 32 formic acid molecules. We found that in liquid formic acid the hydrogen-bonded clusters mainly consist of linear branching chains. From our simulation, we got good agreement with the available structural and dynamical data. We also studied the proton transfer in the cis-formic acid-formate anion dimer, and we showed that this proton transfer does not have any potential barrier. The hydrogen bonding statistics as well as the mean lifetime of the hydrogen bonds are analyzed.",
+    "source_url": "https://doi.org/10.1021/jp0546352.s002",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.30000000000000004,
+    "priority": "low",
+    "tags": [
+      "low_interest",
+      "possible_si",
+      "unknown_access"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Supplementary information link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/jp0546352.s002"
+    ],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/jp0546352.s002). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/acs.energyfuels.5c04169.s001",
+    "title": "Catalytic Synthesis of Acetic Acid from Methanol Using Formic Acid as a Renewable CO Source",
+    "authors": [],
+    "year": null,
+    "journal": null,
+    "doi": "10.1021/acs.energyfuels.5c04169.s001",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1021/acs.energyfuels.5c04169.s001",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.30000000000000004,
+    "priority": "low",
+    "tags": [
+      "low_interest",
+      "possible_si",
+      "unknown_access"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si",
+      "Supplementary information link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/acs.energyfuels.5c04169.s001"
+    ],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/acs.energyfuels.5c04169.s001). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1021/acs.iecr.9b05726.s001",
+    "title": "One-Pot Tandem DehydrationHydrogenation of Xylose with Formic Acid over Co Catalysts",
+    "authors": [],
+    "year": null,
+    "journal": null,
+    "doi": "10.1021/acs.iecr.9b05726.s001",
+    "abstract": null,
+    "source_url": "https://doi.org/10.1021/acs.iecr.9b05726.s001",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.2,
+    "priority": "low",
+    "tags": [
+      "low_interest",
+      "possible_si",
+      "unknown_access"
+    ],
+    "relevance_reason": [
+      "Supplementary information link found"
+    ],
+    "si_link_found": true,
+    "si_links": [
+      "https://doi.org/10.1021/acs.iecr.9b05726.s001"
+    ],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": " Failed to download SI link 0 (https://doi.org/10.1021/acs.iecr.9b05726.s001). ",
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "crossref_10.1202/0002-8894(1987)048<0032:ufaaai>2.0.co;2",
+    "title": "Urinary Formic Acid as an Indicator of Occupational Exposure to Formic Acid and Methanol",
+    "authors": [
+      "J. Liesivuori",
+      "H. Savolainen"
+    ],
+    "year": 1987,
+    "journal": "AIHAJ",
+    "doi": "10.1202/0002-8894(1987)048<0032:ufaaai>2.0.co;2",
+    "abstract": "A sampling strategy was developed to detect personal exposure to methanol and formic acid vapors. Formic acid is the metabolic end product of methanol, and part of inhaled formic acid is excreted directly in urine, so that urinary formic acid would reveal exposure to both agents. A linear relationship to inhaled vapors, however, could be shown only if urinary sampling were delayed until 16 hr (next morning) after exposure. Exposure to methanol vapor at the current Finnish hygienic limit level (200 ppm) produced 80 mg formic acid/g creatinine; exposure to formic acid at the hygienic limit (5 ppm) caused 90 mg/g creatinine. The similarity of these figures may indicate a common toxicological foundation of these empirically set values.",
+    "source_url": "https://doi.org/10.1202/0002-8894(1987)048<0032:ufaaai>2.0.co;2",
+    "oa_status": "unknown",
+    "oa_url": null,
+    "relevance_score": 0.1,
+    "priority": "low",
+    "tags": [
+      "low_interest",
+      "unknown_access"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  },
+  {
+    "id": "openalex_https://openalex.org/W4403117528",
+    "title": "Poly(oxymethylene) Ethers as a High Cetane, Low Sooting Biofuel Blendstock for Use in Medium to Heavy Duty Mixing Controlled Compression Ignition Engines",
+    "authors": [
+      "Bret Windom",
+      "Nicole J. Labbe",
+      "Charles S. McEnally",
+      "Kenneth F. Reardon",
+      "Jason C. Quinn",
+      "Thomas D. Foust",
+      "Andrew Zdanowicz"
+    ],
+    "year": 2023,
+    "journal": null,
+    "doi": "10.2172/2448099",
+    "abstract": "",
+    "source_url": "https://openalex.org/W4403117528",
+    "oa_status": "oa",
+    "oa_url": "https://doi.org/10.2172/2448099",
+    "relevance_score": 0.1,
+    "priority": "low",
+    "tags": [
+      "low_interest",
+      "oa"
+    ],
+    "relevance_reason": [
+      "Matched keyword: si"
+    ],
+    "si_link_found": false,
+    "si_links": [],
+    "mechanism_link_found": false,
+    "mechanism_links": [],
+    "access_notes": null,
+    "manual_review_needed": false,
+    "keep_for_manual_review": false
+  }
+]
