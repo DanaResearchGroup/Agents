@@ -1,0 +1,696 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type='text/xsl' href='../../mesmer1.xsl'?>
+<me:mesmer xmlns="http://www.xml-cml.org/schema" xmlns:me="http://www.chem.leeds.ac.uk/mesmer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<title> Glyoxal</title>
+<moleculeList>
+  <molecule id="N2">
+    <atomArray>
+      <atom id="a1" elementType="N" />
+      <atom id="a2" elementType="N" />
+    </atomArray>
+    <bondArray>
+      <bond atomRefs2="a2 a1" order="3" />
+    </bondArray>
+    <propertyList>
+      <property dictRef="me:epsilon">
+        <scalar>82</scalar>
+      </property>
+      <property dictRef="me:sigma">
+        <scalar>3.74</scalar>
+      </property>
+      <property dictRef="me:MW">
+        <scalar units="amu">28.0</scalar>
+      </property>
+    </propertyList>
+  </molecule>
+
+  <molecule spinMultiplicity="2" id="HOCO">
+	  <atomArray>
+		  <atom id="a1" elementType="C" x3="0.000331" y3="0.410056" z3="0.000000"/>
+		  <atom id="a2" elementType="O" x3="-1.172417" y3="0.255052" z3="0.000000"/>
+		  <atom id="a3" elementType="O" x3="0.946491" y3="-0.550641" z3="0.000000"/>
+		  <atom id="a4" elementType="H" x3="1.806945" y3="-0.112066" z3="0.000000"/>
+	  </atomArray>
+	  <bondArray>
+	   <bond atomRefs2="a1 a2" order="2"/>
+	   <bond atomRefs2="a1 a3" order="1" id="b1"/>
+	   <bond atomRefs2="a3 a4" order="1"/>
+	  </bondArray>
+    <propertyList>
+      <property dictRef="me:ZPE">
+        <scalar units="kJ/mol">0</scalar>
+	
+      </property>
+      <property dictRef="me:vibFreqs">
+        <array units="cm-1"></array>
+      </property>
+      <property dictRef="me:spinMultiplicity">
+        <scalar units="cm-1">2</scalar>
+      </property>
+      <property dictRef="me:hessian">
+        <matrix matrixType="squareSymmetricLT" rows="12" units="Hartree/Bohr2">
+			0.9968568											
+			0.0442201	0.3187425										
+			0	0	0.014275									
+			-0.8211043	-0.1362331	0	0.9072549								
+			-0.137952	-0.1018632	0	0.0902072	0.0701708							
+			0	0	-0.0109234	0	0	0.0083586						
+			-0.1424688	0.1116203	0	-0.08809	0.0404278	0	0.6326431					
+			0.0576416	-0.2283427	0	0.0399486	0.0367306	0	0.0721515	0.3370028				
+			0	0	0.0078507	0	0	-0.0060074	0	0	0.0043176			
+			-0.0332837	-0.0196074	0	0.0019394	0.007317	0	-0.4020844	-0.1697417	0	0.4334287		
+			0.0360904	0.0114634	0	0.0060772	-0.0050383	0	-0.2241996	-0.1453907	0	0.1820321	0.1389657	
+			0	0	-0.0112024	0	0	0.0085722	0	0	-0.0061609	0	0	0.0087911
+		 </matrix>
+      </property>
+      <property dictRef="me:sigma" default="true">
+        <scalar>5.0</scalar>
+      </property>
+      <property dictRef="me:epsilon" default="true">
+        <scalar>50.0</scalar>
+      </property>
+      <property dictRef="me:frequenciesScaleFactor" default="true">
+        <scalar>1</scalar>
+      </property>
+      <property dictRef="me:symmetryNumber" default="true">
+        <scalar>1</scalar>
+      </property>
+    </propertyList>
+    <me:DOSCMethod default="true" name="QMRotors" />
+    <me:ExtraDOSCMethod xsi:type="me:HinderedRotorQM1D">
+      <bondRef>b1</bondRef>
+      <me:HinderedRotorPotential format="numerical" units="kJ/mol" expansionSize="10" UseSineTerms="yes">
+		  <me:PotentialPoint  angle=" 0	 " potential="	0	"/>
+		  <me:PotentialPoint  angle=" 10	 " potential="	1.076455	"/>
+		  <me:PotentialPoint  angle=" 20	 " potential="	4.227055	"/>
+		  <me:PotentialPoint  angle=" 30	 " potential="	9.110485	"/>
+		  <me:PotentialPoint  angle=" 40	 " potential="	15.28041	"/>
+		  <me:PotentialPoint  angle=" 50	 " potential="	22.10671	"/>
+		  <me:PotentialPoint  angle=" 60	 " potential="	28.82799	"/>
+		  <me:PotentialPoint  angle=" 70	 " potential="	34.6566	"/>
+		  <me:PotentialPoint  angle=" 80	 " potential="	38.8574	"/>
+		  <me:PotentialPoint  angle=" 90	 " potential="	40.9578	"/>
+		  <me:PotentialPoint  angle=" 100	 " potential="	40.64274	"/>
+		  <me:PotentialPoint  angle=" 110	 " potential="	38.06975	"/>
+		  <me:PotentialPoint  angle=" 120	 " potential="	33.65891	"/>
+		  <me:PotentialPoint  angle=" 130	 " potential="	28.14536	"/>
+		  <me:PotentialPoint  angle=" 140	 " potential="	22.290495	"/>
+		  <me:PotentialPoint  angle=" 150	 " potential="	16.85571	"/>
+		  <me:PotentialPoint  angle=" 160	 " potential="	12.49738	"/>
+		  <me:PotentialPoint  angle=" 170	 " potential="	9.66184	"/>
+		  <me:PotentialPoint  angle=" 180	 " potential="	8.690405	"/>
+		  <me:PotentialPoint  angle=" 190	 " potential="	9.66184	"/>
+		  <me:PotentialPoint  angle=" 200	 " potential="	12.49738	"/>
+		  <me:PotentialPoint  angle=" 210	 " potential="	16.85571	"/>
+		  <me:PotentialPoint  angle=" 220	 " potential="	22.290495	"/>
+		  <me:PotentialPoint  angle=" 230	 " potential="	28.14536	"/>
+		  <me:PotentialPoint  angle=" 240	 " potential="	33.65891	"/>
+		  <me:PotentialPoint  angle=" 250	 " potential="	38.06975	"/>
+		  <me:PotentialPoint  angle=" 260	 " potential="	40.64274	"/>
+		  <me:PotentialPoint  angle=" 270	 " potential="	40.9578	"/>
+		  <me:PotentialPoint  angle=" 280	 " potential="	38.8574	"/>
+		  <me:PotentialPoint  angle=" 290	 " potential="	34.6566	"/>
+		  <me:PotentialPoint  angle=" 300	 " potential="	28.82799	"/>
+		  <me:PotentialPoint  angle=" 310	 " potential="	22.10671	"/>
+		  <me:PotentialPoint  angle=" 320	 " potential="	15.28041	"/>
+		  <me:PotentialPoint  angle=" 330	 " potential="	9.110485	"/>
+		  <me:PotentialPoint  angle=" 340	 " potential="	4.227055	"/>
+		  <me:PotentialPoint  angle=" 350	 " potential="	1.076455	"/>
+		  <me:PotentialPoint  angle=" 360	 " potential="	0	"/>
+      </me:HinderedRotorPotential>
+    </me:ExtraDOSCMethod>
+    <me:energyTransferModel xsi:type="me:ExponentialDown">
+    
+	<me:deltaEDown bathGas="He" units="cm-1" upper="400" lower="30" stepsize="0.1">80</me:deltaEDown>
+	   <!--me:deltaEDown bathGas="He" units="cm-1" >500</me:deltaEDown-->
+     <!-- <me:deltaEDownTExponent bathGas="He" referenceTemperature="298" >1.0</me:deltaEDownTExponent> -->
+     <me:deltaEDownTExponent bathGas="He" upper="1.2" lower="0.5" stepsize="0.2" referenceTemperature="298" >1.0</me:deltaEDownTExponent> 
+	 
+	 <me:deltaEDown bathGas="Ar" units="cm-1" upper="600" lower="30" stepsize="0.1">90</me:deltaEDown>
+     <!-- <me:deltaEDownTExponent bathGas="Ar" referenceTemperature="298" >0.5</me:deltaEDownTExponent> -->
+	   <me:deltaEDownTExponent bathGas="Ar" upper="1.25" lower="0.25" stepsize="0.1" referenceTemperature="298" >0.5</me:deltaEDownTExponent> 
+    </me:energyTransferModel>
+	
+  </molecule>
+  <molecule spinMultiplicity="2" id="water">
+	  <atomArray>
+	   <atom id="a1" elementType="H" x3="0.759508" y3="-0.469893" z3="0.000000"/>
+	   <atom id="a2" elementType="O" x3="0.000000" y3="0.117473" z3="0.000000"/>
+	   <atom id="a3" elementType="H" x3="-0.759508" y3="-0.469893" z3="0.000000"/>
+	  </atomArray>
+	  <bondArray>
+	   <bond atomRefs2="a1 a2" order="1"/>
+	   <bond atomRefs2="a2 a3" order="1"/>
+	  </bondArray>
+    <propertyList>
+      <property dictRef="me:ZPE">
+        <scalar units="kJ/mol">0</scalar>
+      </property>
+      <property dictRef="me:vibFreqs">
+        <array units="cm-1"></array>
+      </property>
+      <property dictRef="me:spinMultiplicity">
+        <scalar units="cm-1">1</scalar>
+      </property>
+      <property dictRef="me:hessian">
+        <matrix matrixType="squareSymmetricLT" rows="9" units="Hartree/Bohr2">
+0.10503663 -0.21273897 0.43143138 -0.03130607 0.06982192 0.05843716 -0.10005101 0.20551299 0.05203861 0.13647704 0.20197176 -0.41553118 -0.11137358 -0.26201210 0.51083023 0.02504278 -0.05778144 -0.06146036 0.06901347 -0.07051948 0.50677778 -0.00498562 0.00722599 -0.02073254 -0.03642602 0.06004033 -0.09405625 0.04141164 0.01076721 -0.01590020 0.04155165 0.05649911 -0.09529905 0.12830093 -0.06726632 0.11119925 0.00626328 -0.01204048 0.00302320 -0.12105208 0.18189306 -0.44531742 0.11478879 -0.16985258 0.44229422
+		 </matrix>
+      </property>
+      <property dictRef="me:sigma" default="true">
+        <scalar>5.0</scalar>
+      </property>
+      <property dictRef="me:epsilon" default="true">
+        <scalar>50.0</scalar>
+      </property>
+      <property dictRef="me:frequenciesScaleFactor" default="true">
+        <scalar>1</scalar>
+      </property>
+
+      <property dictRef="me:symmetryNumber" default="true">
+        <scalar>1</scalar>
+      </property>
+    </propertyList>
+    <me:DOSCMethod default="true" name="QMRotors" />
+  </molecule>
+  <molecule spinMultiplicity="2" id="HOCO_OH_TS">
+	  <atomArray>
+		  <atom id="a1" elementType="C" x3="0.482359" y3="-0.464372" z3="0.000000"/>
+		  <atom id="a2" elementType="O" x3="1.384570" y3="0.226754" z3="0.000000"/>
+		  <atom id="a3" elementType="O" x3="-1.530174" y3="0.210719" z3="0.000000"/>
+		  <atom id="a4" elementType="H" x3="-1.893825" y3="-0.691501" z3="0.000000"/>
+	  </atomArray>
+	  <bondArray>
+	   <bond atomRefs2="a1 a2" order="2"/>
+	   <bond atomRefs2="a3 a4" order="1"/>
+	   <bond atomRefs2="a3 a1" order="1" id="b1"/>
+	  </bondArray>
+    <propertyList>
+      <property dictRef="me:ZPE">
+        <scalar units="kJ/mol"> 107.10</scalar>
+      </property>
+      <property dictRef="me:vibFreqs">
+        <array units="cm-1"></array>
+      </property>
+      <property dictRef="me:spinMultiplicity">
+        <scalar units="cm-1">2</scalar>
+      </property>
+	  
+	  
+	    <!-- <property title="Vibrational Frequencies" dictRef="me:vibFreqs"> -->
+   <!-- <array units="cm-1">518.495 639.684 926.931 1283.24 2159.4  </array> -->
+  <!-- </property> -->
+	  
+      <property dictRef="me:hessian">
+        <matrix matrixType="squareSymmetricLT" rows="12" units="Hartree/Bohr2">
+			0.7191847											
+			0.5697877	0.4567568										
+			0	0	0.0029795									
+			-0.7409778	-0.5665255	0	0.7511883								
+			-0.5622006	-0.4474682	0	0.5670596	0.4414869							
+			0	0	-0.0023406	0	0	0.0018387						
+			0.026866	0.0058531	0	-0.0103095	-0.0077947	0	0.0603522					
+			-0.0099675	-0.0106681	0	-0.0019057	0.0051673	0	0.1725069	0.440076				
+			0	0	0.0016321	0	0	-0.0012821	0	0	0.000894			
+			-0.005073	-0.0091153	0	0.0000989	0.0029357	0	-0.0769087	-0.1606337	0	0.0818827		
+			0.0023803	0.0013795	0	0.0013716	0.000814	0	-0.1705653	-0.4345753	0	0.1668133	0.4323818	
+			0	0	-0.002271	0	0	0.001784	0	0	-0.001244	0	0	0.001731
+		 </matrix>
+      </property>
+      <property dictRef="me:frequenciesScaleFactor" default="true">
+        <scalar>1</scalar>
+      </property>
+
+ <!-- <property title="ImaginaryFrequency" dictRef="me:imFreqs"> -->
+  <!-- <scalar units="cm-1" lower="167.19" upper="1794.5" stepsize="1">1230.848</scalar> -->
+  <!-- </property> -->
+
+	 <!-- <property title="ImaginaryFrequency" dictRef="me:imFreqs"> -->
+   <!-- <scalar units="cm-1">2213</scalar> -->
+  <!-- </property> -->
+
+      <property dictRef="me:symmetryNumber" default="true">
+        <scalar>1</scalar>
+      </property>
+    </propertyList>
+    <me:DOSCMethod default="true" name="QMRotors" />
+    <me:ExtraDOSCMethod xsi:type="me:HinderedRotorQM1D">
+      <bondRef>b1</bondRef>
+      <me:HinderedRotorPotential format="numerical" units="kJ/mol" expansionSize="10" UseSineTerms="yes">
+		  <me:PotentialPoint  angle=" 0	 " potential="	0	"/>
+		  <me:PotentialPoint  angle=" 10	 " potential="	0.183785	"/>
+		  <me:PotentialPoint  angle=" 20	 " potential="	0.68263	"/>
+		  <me:PotentialPoint  angle=" 30	 " potential="	1.52279	"/>
+		  <me:PotentialPoint  angle=" 40	 " potential="	2.651755	"/>
+		  <me:PotentialPoint  angle=" 50	 " potential="	4.04327	"/>
+		  <me:PotentialPoint  angle=" 60	 " potential="	5.644825	"/>
+		  <me:PotentialPoint  angle=" 70	 " potential="	7.40391	"/>
+		  <me:PotentialPoint  angle=" 80	 " potential="	9.18925	"/>
+		  <me:PotentialPoint  angle=" 90	 " potential="	10.92208	"/>
+		  <me:PotentialPoint  angle=" 100	 " potential="	12.54989	"/>
+		  <me:PotentialPoint  angle=" 110	 " potential="	14.02017	"/>
+		  <me:PotentialPoint  angle=" 120	 " potential="	15.254155	"/>
+		  <me:PotentialPoint  angle=" 130	 " potential="	16.251845	"/>
+		  <me:PotentialPoint  angle=" 140	 " potential="	17.039495	"/>
+		  <me:PotentialPoint  angle=" 150	 " potential="	17.64336	"/>
+		  <me:PotentialPoint  angle=" 160	 " potential="	18.06344	"/>
+		  <me:PotentialPoint  angle=" 170	 " potential="	18.299735	"/>
+		  <me:PotentialPoint  angle=" 180	 " potential="	18.3785	"/>
+		  <me:PotentialPoint  angle=" 190	 " potential="	18.299735	"/>
+		  <me:PotentialPoint  angle=" 200	 " potential="	18.06344	"/>
+		  <me:PotentialPoint  angle=" 210	 " potential="	17.64336	"/>
+		  <me:PotentialPoint  angle=" 220	 " potential="	17.039495	"/>
+		  <me:PotentialPoint  angle=" 230	 " potential="	16.251845	"/>
+		  <me:PotentialPoint  angle=" 240	 " potential="	15.254155	"/>
+		  <me:PotentialPoint  angle=" 250	 " potential="	14.02017	"/>
+		  <me:PotentialPoint  angle=" 260	 " potential="	12.54989	"/>
+		  <me:PotentialPoint  angle=" 270	 " potential="	10.92208	"/>
+		  <me:PotentialPoint  angle=" 280	 " potential="	9.18925	"/>
+		  <me:PotentialPoint  angle=" 290	 " potential="	7.40391	"/>
+		  <me:PotentialPoint  angle=" 300	 " potential="	5.644825	"/>
+		  <me:PotentialPoint  angle=" 310	 " potential="	4.04327	"/>
+		  <me:PotentialPoint  angle=" 320	 " potential="	2.651755	"/>
+		  <me:PotentialPoint  angle=" 330	 " potential="	1.52279	"/>
+		  <me:PotentialPoint  angle=" 340	 " potential="	0.68263	"/>
+		  <me:PotentialPoint  angle=" 350	 " potential="	0.183785	"/>
+		  <me:PotentialPoint  angle=" 360	 " potential="	0	"/>
+      </me:HinderedRotorPotential>
+	  <me:CalculateInternalRotorInertia phaseDifference ="180.0"/> 
+    </me:ExtraDOSCMethod>
+  </molecule>
+  <molecule spinMultiplicity="2" id="HOCO_H_TS">
+	  <atomArray>
+		  <atom id="a1" elementType="C" x3="0.049074" y3="-0.281355" z3="0.010143"/>
+		  <atom id="a2" elementType="O" x3="1.036409" y3="0.348934" z3="-0.015183"/>
+		  <atom id="a3" elementType="O" x3="-1.146594" y3="-0.494106" z3="0.017850"/>
+		  <atom id="a4" elementType="H" x3="-1.919019" y3="0.604027" z3="-0.028710"/>
+	  </atomArray>
+	  <bondArray>
+	   <bond atomRefs2="a1 a2" order="1"/>
+	   <bond atomRefs2="a1 a3" order="1" id="b1"/>
+	   <bond atomRefs2="a3 a4" order="1"/>
+	  </bondArray>
+    <propertyList>
+      <property dictRef="me:ZPE">
+        <scalar units="kJ/mol">110.04</scalar>
+		<!-- <scalar units="kJ/mol" lower="105" upper="115" stepsize="0.1">110.04</scalar> -->
+      </property>
+      <property dictRef="me:vibFreqs">
+        <array units="cm-1">518.495 639.684 926.931 1283.24 2159.4</array>
+      </property>
+      <property dictRef="me:spinMultiplicity">
+        <scalar units="cm-1">2</scalar>
+      </property>
+      <!-- <property dictRef="me:hessian"> -->
+        <!-- <matrix matrixType="squareSymmetricLT" rows="12" units="Hartree/Bohr2"> -->
+			<!-- 1.1824153											 -->
+			<!-- 0.5777217	0.3422901										 -->
+			<!-- -0.0230336	-0.0096776	0.0973791									 -->
+			<!-- -0.6552435	-0.3611636	0.0144706	0.7147981								 -->
+			<!-- -0.4617721	-0.2555978	0.0082409	0.4138736	0.252982							 -->
+			<!-- 0.0186653	0.0083529	-0.0473372	-0.0165875	-0.0091936	0.0231481						 -->
+			<!-- -0.4142222	-0.3096066	0.0125882	-0.0683782	0.0987713	-0.0042248	0.357839					 -->
+			<!-- -0.2552294	0.003052	-0.0031464	-0.0511134	-0.0645053	0.003983	0.3995936	-0.0196248				 -->
+			<!-- 0.0103044	-0.0032291	-0.0671424	0.0020334	0.0041533	0.0324378	-0.0163727	0.0031302	0.0465295			 -->
+			<!-- -0.1129496	0.0930486	-0.0040252	0.0088236	-0.0508728	0.0021469	0.1247614	-0.0932509	0.0040348	-0.0206354		 -->
+			<!-- 0.1392798	-0.0897444	0.0045831	-0.0015966	0.0671211	-0.0031423	-0.1887583	0.081078	-0.0040543	0.051075	-0.0584548	 -->
+			<!-- -0.0059361	0.0045538	0.0171005	0.0000834	-0.0032006	-0.0082486	0.0080093	-0.0039668	-0.0118248	-0.0021566	0.0026136	0.002973 -->
+		 <!-- </matrix> -->
+      <!-- </property> -->
+      <property dictRef="me:frequenciesScaleFactor" default="true">
+        <scalar>1</scalar>
+      </property>
+
+		 <property title="Rotational Constants" dictRef="me:rotConsts">
+   <array units="cm-1">0.348733 0.365484 7.60879</array>
+  </property>
+
+      <property dictRef="me:symmetryNumber" default="true">
+        <scalar>1</scalar>
+      </property>
+	  
+	 <!-- <property title="ImaginaryFrequency" dictRef="me:imFreqs"> -->
+	<!-- <scalar units="cm-1" lower="1450" upper="2250" stepsize="10">1800</scalar> -->
+	<!-- </property> -->
+	  
+	 <property title="ImaginaryFrequency" dictRef="me:imFreqs">
+   <scalar units="cm-1">1999</scalar>
+    </property>
+	  
+    </propertyList>
+    <me:DOSCMethod default="true" name="QMRotors" />
+    <!--><me:ExtraDOSCMethod xsi:type="me:HinderedRotorQM1D">
+      <bondRef>b1</bondRef>
+      <me:HinderedRotorPotential format="numerical" units="kJ/mol" expansionSize="10" UseSineTerms="yes">
+		  <me:PotentialPoint  angle=" 0	 " potential="	0	"/>
+		  <me:PotentialPoint  angle=" 10	 " potential="	0.183785	"/>
+		  <me:PotentialPoint  angle=" 20	 " potential="	0.68263	"/>
+		  <me:PotentialPoint  angle=" 30	 " potential="	1.52279	"/>
+		  <me:PotentialPoint  angle=" 40	 " potential="	2.651755	"/>
+		  <me:PotentialPoint  angle=" 50	 " potential="	4.04327	"/>
+		  <me:PotentialPoint  angle=" 60	 " potential="	5.644825	"/>
+		  <me:PotentialPoint  angle=" 70	 " potential="	7.40391	"/>
+		  <me:PotentialPoint  angle=" 80	 " potential="	9.18925	"/>
+		  <me:PotentialPoint  angle=" 90	 " potential="	10.92208	"/>
+		  <me:PotentialPoint  angle=" 100	 " potential="	12.54989	"/>
+		  <me:PotentialPoint  angle=" 110	 " potential="	14.02017	"/>
+		  <me:PotentialPoint  angle=" 120	 " potential="	15.254155	"/>
+		  <me:PotentialPoint  angle=" 130	 " potential="	16.251845	"/>
+		  <me:PotentialPoint  angle=" 140	 " potential="	17.039495	"/>
+		  <me:PotentialPoint  angle=" 150	 " potential="	17.64336	"/>
+		  <me:PotentialPoint  angle=" 160	 " potential="	18.06344	"/>
+		  <me:PotentialPoint  angle=" 170	 " potential="	18.299735	"/>
+		  <me:PotentialPoint  angle=" 180	 " potential="	18.3785	"/>
+		  <me:PotentialPoint  angle=" 190	 " potential="	18.299735	"/>
+		  <me:PotentialPoint  angle=" 200	 " potential="	18.06344	"/>
+		  <me:PotentialPoint  angle=" 210	 " potential="	17.64336	"/>
+		  <me:PotentialPoint  angle=" 220	 " potential="	17.039495	"/>
+		  <me:PotentialPoint  angle=" 230	 " potential="	16.251845	"/>
+		  <me:PotentialPoint  angle=" 240	 " potential="	15.254155	"/>
+		  <me:PotentialPoint  angle=" 250	 " potential="	14.02017	"/>
+		  <me:PotentialPoint  angle=" 260	 " potential="	12.54989	"/>
+		  <me:PotentialPoint  angle=" 270	 " potential="	10.92208	"/>
+		  <me:PotentialPoint  angle=" 280	 " potential="	9.18925	"/>
+		  <me:PotentialPoint  angle=" 290	 " potential="	7.40391	"/>
+		  <me:PotentialPoint  angle=" 300	 " potential="	5.644825	"/>
+		  <me:PotentialPoint  angle=" 310	 " potential="	4.04327	"/>
+		  <me:PotentialPoint  angle=" 320	 " potential="	2.651755	"/>
+		  <me:PotentialPoint  angle=" 330	 " potential="	1.52279	"/>
+		  <me:PotentialPoint  angle=" 340	 " potential="	0.68263	"/>
+		  <me:PotentialPoint  angle=" 350	 " potential="	0.183785	"/>
+		  <me:PotentialPoint  angle=" 360	 " potential="	0	"/>
+      </me:HinderedRotorPotential>
+	  <me:CalculateInternalRotorInertia phaseDifference ="0.0"/> 
+    </me:ExtraDOSCMethod>-->
+  </molecule>
+
+ <molecule id="OH_sink" description="OH radical_sink">
+      <atomArray>
+        <atom id="a1" elementType="O" />
+        <atom id="a2" elementType="H" />
+      </atomArray>
+      <bondArray>
+        <bond atomRefs2="a1 a2" order="1" />
+      </bondArray>
+      <propertyList>
+        <property dictRef="me:ZPE">
+          <scalar units="kJ/mol">0.0</scalar>
+        </property>
+        <property dictRef="me:rotConsts">
+          <array units="cm-1">19.2438</array>
+        </property>
+        <property dictRef="me:symmetryNumber">
+          <scalar>1</scalar>
+        </property>
+        <property dictRef="me:frequenciesScaleFactor">
+          <scalar>0.9854</scalar>
+        </property>
+        <property dictRef="me:vibFreqs">
+          <array units="cm-1">3722.0</array>
+        </property>
+        <property dictRef="me:MW">
+          <scalar units="amu">17</scalar>
+        </property>
+        <property dictRef="me:spinMultiplicity">
+          <scalar>2</scalar>
+        </property>
+        <property dictRef="me:eletronicExcitation">
+          <array units="cm-1">139.7</array>
+        </property>
+      </propertyList>
+      <me:DOSCMethod xsi:type="ClassicalRotors"/>
+    </molecule>
+
+
+ <molecule id="H_sink">
+      <atom elementType="H"/>
+      <propertyList>
+        <property dictRef="me:ZPE">
+          <scalar units="cm-1">0.0</scalar>
+        </property>
+        <property dictRef="me:MW">
+          <scalar>1.0</scalar>
+        </property>
+      </propertyList>
+      <property dictRef="me:spinMultiplicity">
+        <scalar>2</scalar>
+      </property>
+    </molecule>
+
+
+  <!-- <molecule spinMultiplicity="2" id="sink_OH"> -->
+    <!-- <propertyList> -->
+      <!-- <property dictRef="me:ZPE"> -->
+        <!-- <scalar units="kJ/mol">90</scalar> -->
+      <!-- </property> -->
+    <!-- </propertyList> -->
+  <!-- </molecule> -->
+  
+  
+  
+  <!-- <molecule spinMultiplicity="2" id="sink_H"> -->
+    <!-- <propertyList> -->
+      <!-- <property dictRef="me:ZPE"> -->
+        <!-- <scalar units="kJ/mol">0</scalar> -->
+      <!-- </property> -->
+    <!-- </propertyList> -->
+  <!-- </molecule> -->
+  
+  
+</moleculeList>
+<reactionList>
+
+	<reaction active="true" id="R5">
+	<reactant>
+	<molecule role="modelled" ref="HOCO"/>
+	</reactant>
+	<product>
+	<molecule role="sink" ref="OH_sink"/>
+	</product>
+	<me:MCRCMethod name="RRKM"/>
+	<me:transitionState>
+	<molecule role="transitionState" ref="HOCO_OH_TS"/>
+	</me:transitionState>	
+	<!-- <me:tunneling xsi:type="Eckart"> -->
+	<!-- <me:useZPE/> -->
+<!-- </me:tunneling>			 -->
+	</reaction>
+	<reaction active="true" id="R6">
+	<reactant>
+	<molecule role="modelled" ref="HOCO"/>
+	</reactant>
+	<product>
+	<molecule role="sink" ref="H_sink"/>
+	</product>
+	<me:MCRCMethod name="RRKM"/>
+	<me:transitionState>
+	<molecule role="transitionState" ref="HOCO_H_TS"/>
+	</me:transitionState>
+	<!-- <me:tunneling xsi:type="Eckart"> -->
+	<!-- <me:useZPE/> -->
+	<!-- </me:tunneling> -->
+	<me:tunneling	xsi:type="me:WKB">				
+	<me:IRCPotential	units="kJ/mol"	ReducedMass="1">			
+		<me:PotentialPoint	ReacCoord="	-1.18197E-10	 " potential="	0	"/>
+		<me:PotentialPoint	ReacCoord="	-1.11967E-10	 " potential="	1.550294024	"/>
+		<me:PotentialPoint	ReacCoord="	-1.05738E-10	 " potential="	3.561707417	"/>
+		<me:PotentialPoint	ReacCoord="	-9.95102E-11	 " potential="	5.800468718	"/>
+		<me:PotentialPoint	ReacCoord="	-9.32828E-11	 " potential="	8.275295607	"/>
+		<me:PotentialPoint	ReacCoord="	-8.7057E-11	 " potential="	11.07058644	"/>
+		<me:PotentialPoint	ReacCoord="	-8.08317E-11	 " potential="	14.28266902	"/>
+		<me:PotentialPoint	ReacCoord="	-7.4608E-11	 " potential="	17.99397896	"/>
+		<me:PotentialPoint	ReacCoord="	-6.83849E-11	 " potential="	22.23750068	"/>
+		<me:PotentialPoint	ReacCoord="	-6.21623E-11	 " potential="	27.04825786	"/>
+		<me:PotentialPoint	ReacCoord="	-5.59396E-11	 " potential="	32.53170383	"/>
+		<me:PotentialPoint	ReacCoord="	-4.97165E-11	 " potential="	38.80942727	"/>
+		<me:PotentialPoint	ReacCoord="	-4.34949E-11	 " potential="	45.84013392	"/>
+		<me:PotentialPoint	ReacCoord="	-3.73035E-11	 " potential="	53.00440969	"/>
+		<me:PotentialPoint	ReacCoord="	-3.11279E-11	 " potential="	61.27080918	"/>
+		<me:PotentialPoint	ReacCoord="	-2.49127E-11	 " potential="	74.17506521	"/>
+		<me:PotentialPoint	ReacCoord="	-1.86864E-11	 " potential="	89.1233877	"/>
+		<me:PotentialPoint	ReacCoord="	-1.24585E-11	 " potential="	101.9526513	"/>
+		<me:PotentialPoint	ReacCoord="	-6.23003E-12	 " potential="	108.921391	"/>
+		<me:PotentialPoint	ReacCoord="	0	 " potential="	110.248645	"/>
+		<me:PotentialPoint	ReacCoord="	6.23003E-12	 " potential="	108.8508084	"/>
+		<me:PotentialPoint	ReacCoord="	1.24585E-11	 " potential="	100.4716654	"/>
+		<me:PotentialPoint	ReacCoord="	1.86869E-11	 " potential="	91.80833106	"/>
+		<me:PotentialPoint	ReacCoord="	2.49159E-11	 " potential="	83.26811485	"/>
+		<me:PotentialPoint	ReacCoord="	3.11443E-11	 " potential="	74.45999569	"/>
+		<me:PotentialPoint	ReacCoord="	3.73728E-11	 " potential="	65.83775173	"/>
+		<me:PotentialPoint	ReacCoord="	4.36018E-11	 " potential="	57.80303349	"/>
+		<me:PotentialPoint	ReacCoord="	4.98302E-11	 " potential="	50.3922666	"/>
+		<me:PotentialPoint	ReacCoord="	5.60587E-11	 " potential="	43.71684364	"/>
+		<me:PotentialPoint	ReacCoord="	6.22876E-11	 " potential="	37.72206243	"/>
+		<me:PotentialPoint	ReacCoord="	6.85166E-11	 " potential="	32.26795579	"/>
+		<me:PotentialPoint	ReacCoord="	7.47461E-11	 " potential="	27.37193358	"/>
+		<me:PotentialPoint	ReacCoord="	8.09751E-11	 " potential="	23.02387617	"/>
+		<me:PotentialPoint	ReacCoord="	8.72046E-11	 " potential="	19.15044798	"/>
+		<me:PotentialPoint	ReacCoord="	9.34336E-11	 " potential="	15.73915877	"/>
+		<me:PotentialPoint	ReacCoord="	9.96625E-11	 " potential="	12.74672603	"/>
+		<me:PotentialPoint	ReacCoord="	1.0589E-10	 " potential="	10.06443366	"/>
+		<me:PotentialPoint	ReacCoord="	1.12117E-10	 " potential="	7.807013466	"/>
+		<me:PotentialPoint	ReacCoord="	1.18342E-10	 " potential="	5.902761257	"/>
+		<me:PotentialPoint	ReacCoord="	1.24566E-10	 " potential="	4.29615918	"/>
+		<me:PotentialPoint	ReacCoord="	1.3079E-10	 " potential="	2.98427585	"/>
+		<me:PotentialPoint	ReacCoord="	1.37017E-10	 " potential="	1.908152223	"/>
+		<me:PotentialPoint	ReacCoord="	1.43245E-10	 " potential="	0.914693612	"/>
+		<me:PotentialPoint	ReacCoord="	1.49474E-10	 " potential="	-0.145141718	"/>
+		<me:PotentialPoint	ReacCoord="	1.55704E-10	 " potential="	-0.548933422	"/>
+		<me:PotentialPoint	ReacCoord="	1.61933E-10	 " potential="	-0.543580461	"/>
+		<me:PotentialPoint	ReacCoord="	1.68163E-10	 " potential="	-0.750842019	"/>
+		<me:PotentialPoint	ReacCoord="	1.74392E-10	 " potential="	-1.478462383	"/>
+		<me:PotentialPoint	ReacCoord="	1.80621E-10	 " potential="	-2.904924573	"/>
+		<me:PotentialPoint	ReacCoord="	1.8685E-10	 " potential="	-2.835285097	"/>
+		<me:PotentialPoint	ReacCoord="	1.93077E-10	 " potential="	-1.740935913	"/>
+	</me:IRCPotential>					
+	</me:tunneling>
+	
+	</reaction>
+	
+
+
+
+</reactionList>
+<me:conditions>
+<me:bathGas>He</me:bathGas>
+<me:PTs>
+	
+<!-- 23rd Sept -->
+
+    <me:PTpair units="Torr" P=" 30.9" T=" 667 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="52">432.6</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P=" 31.9" T=" 669 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="83">658.7</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P=" 30.4" T=" 671 " precision="d"> <me:bathGas>He</me:bathGas>  <me:experimentalEigenvalue EigenvalueID="1" error="112">759</me:experimentalEigenvalue></me:PTpair> 
+    
+	<!-- <me:PTpair units="Torr" P=" 30" T=" 670 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="102">562</me:experimentalEigenvalue></me:PTpair>  -->
+	<!-- <me:PTpair units="Torr" P=" 30" T=" 671 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="81">644</me:experimentalEigenvalue></me:PTpair>  -->
+    
+	<me:PTpair units="Torr" P=" 119.4" T=" 670 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="391">1389</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P=" 115.9" T=" 670 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="375">2079</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P=" 109.4" T=" 672 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="332">1865</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P=" 109.4" T=" 672 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="385">1584</me:experimentalEigenvalue></me:PTpair> 
+	
+	
+	<me:PTpair units="Torr" P=" 30.2" T=" 722 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="189">2018.53333</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P=" 31.1" T=" 722 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="242">1607.96219</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P=" 30.9" T=" 722 " precision="d"><me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="540">2282.03925</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P=" 31.3" T=" 722 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="272">1900.8933</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P=" 30.5" T=" 723 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="209">1372.60731</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P=" 31.3" T=" 723 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="221">1505.37036</me:experimentalEigenvalue></me:PTpair> 
+	
+    <me:PTpair units="Torr" P=" 117.2" T=" 722 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="764">4335.07533</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P=" 115.7" T=" 722 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="540">4772.47076</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P=" 100.2" T=" 723 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="738">3921.66536</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P=" 98.2" T=" 723 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="690">2617.35974</me:experimentalEigenvalue></me:PTpair> 
+	
+	<!-- 18th Sept 20202 -->
+	
+	<me:PTpair units="Torr" P="206.9" T=" 626 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="136.76267">1800.33574</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="206.9" T=" 626 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="132.29191">1590.26402</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="203.6" T=" 622 " precision="d"><me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="125.55251">1503.12204</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="203.6" T=" 622 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="156.32015">1706.69713</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P="206.9" T=" 623 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="131.82669">1103.80964</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="206.9" T=" 623 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="122.42548">1132.10696</me:experimentalEigenvalue></me:PTpair> 
+	
+	<me:PTpair units="Torr" P="206" T="622"  precision="d" > <me:experimentalYield ref="H_sink" error="0.02" yieldTime="1" >0.98</me:experimentalYield> </me:PTpair>
+	
+	<me:PTpair units="Torr" P="201.1" T=" 667 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="311.22716">3158.03524</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="201.1" T=" 666 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="321.4803">3193.8403</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="202" T=" 666 " precision="d"><me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="269.60847">2771.11941</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="202" T=" 666 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="256.09242">2135.4573</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P="202.7" T=" 668 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="259.71468">2471.64895</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="202.7" T=" 668 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="253.8825">2617.11768</me:experimentalEigenvalue></me:PTpair> 
+	
+	<me:PTpair units="Torr" P="202" T="667"  precision="d" > <me:experimentalYield ref="H_sink" error="0.03" yieldTime="1" >0.96</me:experimentalYield> </me:PTpair>
+	
+	<me:PTpair units="Torr" P="206.2" T=" 723 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="480.08842">5006.16956</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="206.2" T=" 723 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="512.46962">4565.5081</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="203.5" T=" 721 " precision="d"><me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="652.79728">6870.18852</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="203.5" T=" 721 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="778.809432">7157.39546</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P="202.6" T=" 722 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="969.38072">8529.29439</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="202.6" T=" 722 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="800.6988">6864.29261</me:experimentalEigenvalue></me:PTpair> 
+	
+	<me:PTpair units="Torr" P="203" T="722"  precision="d" > <me:experimentalYield ref="H_sink" error="0.03" yieldTime="1" >0.94</me:experimentalYield> </me:PTpair>
+	
+	<me:PTpair units="Torr" P="206.3" T=" 767 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="798.30119">11927.47528</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="206.3" T=" 766 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="680.40298">12085.78296</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="204" T=" 768 " precision="d"><me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="758.06652">11018.74755</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="204" T=" 768 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="649.69164">12033.1624</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P="203.3" T=" 770 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="942.71855">13024.28292</me:experimentalEigenvalue></me:PTpair> 
+    <me:PTpair units="Torr" P="203.3" T=" 770 " precision="d"> <me:bathGas>He</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="1011.49851">12751.84711</me:experimentalEigenvalue></me:PTpair> 
+	
+	<me:PTpair units="Torr" P="204" T="769"  precision="d" > <me:experimentalYield ref="H_sink" error="0.02" yieldTime="1" >0.93</me:experimentalYield> </me:PTpair>
+	
+	<me:PTpair units="Torr" P="30" T="673 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="336">1210</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P="30" T="673 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="288">1237</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P="30" T="673 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="415">1135</me:experimentalEigenvalue></me:PTpair> 
+	<me:PTpair units="Torr" P="30" T="673 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="236">688</me:experimentalEigenvalue></me:PTpair> 
+	
+	<!-- 12th Sept 2024 -->
+	
+	    <me:PTpair units="Torr" P="44.3" T="572 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="22.21708">96.37848</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.3" T="572 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="24.74691">109.95851</me:experimentalEigenvalue></me:PTpair> 
+	
+	    <me:PTpair units="Torr" P="44.4" T="620 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="43.95602">300.05704</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.3" T="620 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="27.34093">249.77425</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="45.0" T="619 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="27.15558">253.8018</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="45." T="619 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="26.97797">216.8677</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="43.9" T="621 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="28.411">224.98288</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="43.9" T="621 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="31.04966">246.60417</me:experimentalEigenvalue></me:PTpair> 
+		
+		 <me:PTpair units="Torr" P="44.4" T="667 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="205.42773">1563.13183</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.4" T="668 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="177.76568">1081.48669</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="43.8" T="670 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="121.30751">743.18002</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="43.8" T="671 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="271.1488">1103.20555</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="45.2" T="671 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="242.45975">1281.42982</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="45.2" T="671 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="230.1197">1287.46394</me:experimentalEigenvalue></me:PTpair> 
+		
+		 <me:PTpair units="Torr" P="44.6" T="717 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="490.01557">2665.33693</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.4" T="717 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="451.71521">2950.78126</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="44.4" T="720 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="539.99611">3700.18837</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.4" T="720 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="600.98025">2582.47558</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="44.2" T="720 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="664.65921">3093.018</me:experimentalEigenvalue></me:PTpair>
+			
+			 <me:PTpair units="Torr" P="44.8" T="761 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="758.99256">4300.22754</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.8" T="765 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="1292.53269">4236.64325</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="44.4" T="767 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="1350.37701">4236.64325</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.4" T="768 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="1467.03469">5985.5923</me:experimentalEigenvalue></me:PTpair> 
+		    <me:PTpair units="Torr" P="44.4" T="770 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="1943.28083">5173.17307</me:experimentalEigenvalue></me:PTpair>
+	    <me:PTpair units="Torr" P="44.4" T="770 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="1614.76504">5346.80354</me:experimentalEigenvalue></me:PTpair> 
+		
+	 
+		 <!-- 27th Sept HOCO + O2 data -->
+		
+		   <me:PTpair units="Torr" P="40.1" T="673 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="97">1232.7</me:experimentalEigenvalue></me:PTpair> 
+		   
+		   <me:PTpair units="Torr" P="38.4" T="723 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="164">2178</me:experimentalEigenvalue></me:PTpair> 
+			
+		  <me:PTpair units="Torr" P="39.8" T="773 " precision="d"> <me:bathGas>Ar</me:bathGas> <me:experimentalEigenvalue EigenvalueID="1" error="391">3109</me:experimentalEigenvalue></me:PTpair> 
+			
+	
+</me:PTs>
+<me:InitialPopulation>
+<me:molecule grain="1.0" population="1.0" ref="HOCO"/>
+</me:InitialPopulation>
+</me:conditions>
+<me:modelParameters>
+<me:grainSize units="cm-1">35</me:grainSize>
+<me:energyAboveTheTopHill>25.0</me:energyAboveTheTopHill>
+</me:modelParameters>
+<me:control>
+    <me:calcMethod xsi:type="me:marquardt">
+       <me:MarquardtIterations>15</me:MarquardtIterations>
+       <me:MarquardtTolerance>1e-6</me:MarquardtTolerance>
+       <me:MarquardtDerivDelta>2.5e-02</me:MarquardtDerivDelta>
+     </me:calcMethod>
+	<me:printSpeciesProfile/>
+<me:ForceMacroDetailedBalance/>
+<me:eigenvalues>6</me:eigenvalues>
+</me:control>
+
+
+ 
+
+
+
+</me:mesmer>
+

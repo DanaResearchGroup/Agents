@@ -3,7 +3,8 @@
 This module implements Step 1 of Lane 1 in the literature-model evaluation workflow. It searches for relevant papers, checks open access status, and triages them into a registry for downstream use.
 
 ## Features
-- Multi-source search (Crossref, OpenAlex)
+- Multi-source search (Semantic Scholar, Crossref, Europe PMC)
+- Hybrid Search Agent with agentic web search fallback for missing SI
 - Heuristic-based relevance scoring and tagging
 - Deep Supplementary Information (SI) discovery
 - Optional automated downloading for OA SI files
@@ -18,24 +19,16 @@ pip install requests pyyaml pydantic
 
 ## Usage
 
-### Free-text Query
+### Method 1: Registry Builder (CLI)
+Best for building a comprehensive paper registry with metadata, scoring, and triage.
 ```bash
 python -m accelerator.cli --query "HOCHO pyrolysis mechanism" --max-results 10
 ```
 
-### Structured Search Object (JSON file)
-Create a file named `search.json`:
-```json
-{
-  "topic": "HOCHO pyrolysis",
-  "keywords": ["formic acid", "pyrolysis", "mechanism"],
-  "year_min": 2010,
-  "max_results": 20
-}
-```
-Run with:
+### Method 2: Workflow Accelerator (Runner)
+Best for a step-by-step agentic workflow including intake, discovery, and automated SI downloading.
 ```bash
-python -m accelerator.cli --query search.json
+python -m accelerator.runner "At 900 K and 1 bar JSR, the model overpredicts CO and slightly underpredicts CO2 for HOCHO oxidation."
 ```
 
 ## Outputs

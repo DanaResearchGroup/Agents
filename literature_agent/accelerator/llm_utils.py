@@ -21,14 +21,21 @@ def call_deepseek(prompt: str, system_prompt: str = "You are a helpful assistant
 
     client = OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
     
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
-        ],
-        response_format={"type": "json_object"},
-        stream=False
-    )
-    
-    return json.loads(response.choices[0].message.content)
+    import time
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+                response_format={"type": "json_object"},
+                stream=False
+            )
+            return json.loads(response.choices[0].message.content)
+        except Exception as e:
+            if attempt < 2: # Retry twice
+                time.sleep(2 ** attempt)
+                continue
+            raise e

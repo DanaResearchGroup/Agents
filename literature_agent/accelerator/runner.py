@@ -4,13 +4,14 @@ import argparse
 import json
 import sys
 import os
+from datetime import datetime
+from pathlib import Path
 
 # Force unbuffered output immediately to fix conda run/pipe buffering
 sys.stdout.reconfigure(line_buffering=True)
 
 from .step1_intake import parse_mismatch_sentence
 from .step2_retrieve import retrieve_sources
-from .step3_extract import extract_candidate_update
 
 
 def run(sentence: str) -> dict:  
@@ -76,21 +77,63 @@ def run(sentence: str) -> dict:
         for i, hit in enumerate(hits, 1):
             _print_hit(i, hit, f_curated)
     
+
+
+    # [STEP 4] SUPPLEMENTARY INFORMATION (SI) DOWNLOAD
     print(f"\n" + "="*70, flush=True)
-    print(" [STEP 3] EVIDENCE EXTRACTION & SYNTHESIS ".center(70, "="), flush=True)
+    print(" [STEP 4] SUPPLEMENTARY INFORMATION DOWNLOAD ".center(70, "="), flush=True)
     print("="*70, flush=True)
     
-    candidate = extract_candidate_update(brief, hits)
-    print("\nPROPOSED CANDIDATE UPDATE:", flush=True)
-    print(candidate.model_dump_json(indent=2), flush=True)
+    from .io_utils import download_file
+    from pathlib import Path
     
+    # Pre-emptively create the results subfolder to store everything together
+    safe_sentence = "".join([c if c.isalnum() else "_" for c in sentence[:30]]).strip("_")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    res_dir = Path("outputs") / f"run_{safe_sentence}_{timestamp}"
+    res_dir.mkdir(parents=True, exist_ok=True)
+    
+    si_dir = res_dir / "si_files"
+    download_count = 0
+    
+    for hit in hits:
+        if hit.si_link_found and hit.si_links:
+            print(f"Discovered SI for: {hit.title[:50]}...", flush=True)
+            for i, url in enumerate(hit.si_links):
+                print(f"  -> Attempting download: {url}", flush=True)
+                safe_title = "".join([c if c.isalnum() else "_" for c in hit.title[:30]])
+                filename = f"{safe_title}_si_{i}.file"
+                filepath = download_file(url, si_dir, filename)
+                if filepath:
+                    print(f"  [✓] Saved to: {filepath}", flush=True)
+                    download_count += 1
+                else:
+                    print(f"  [✗] Failed to download from: {url}", flush=True)
+
+    if download_count == 0:
+        print("No SI files found or downloaded.", flush=True)
+    else:
+        print(f"Successfully downloaded {download_count} SI file(s).", flush=True)
+    
+    # [STEP 5] SAVE STRUCTURED RESULTS
+    with open(res_dir / "failure_brief.json", "w") as f:
+        f.write(brief.model_dump_json(indent=2))
+    
+    with open(res_dir / "curated_search_results.json", "w") as f:
+        import json
+        json.dump([h.model_dump() for h in hits], f, indent=2)
+        
+
+        
+    print(f"\n[✓] All results saved to: {res_dir}", flush=True)
+
     print("\n" + "="*70, flush=True)
     print(" WORKFLOW COMPLETE ".center(70, "="), flush=True)
     print("="*70, flush=True)
     
     return {
         "failure_brief": brief.model_dump(),
-        "candidate_update": candidate.model_dump(),
+        "hits": [h.model_dump() for h in hits],
     }
 
 

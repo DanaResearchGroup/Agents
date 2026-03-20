@@ -54,6 +54,8 @@ class SourceHit(BaseModel):
     match_reason: str | None = None
     likely_contains: str | None = None
     best_use: str | None = None
+    si_links: list[str] = Field(default_factory=list)
+    si_link_found: bool = False
 
 
 class ReactionMapping(BaseModel):
@@ -82,3 +84,33 @@ class CandidateUpdate(BaseModel):
     recommended_kinetics: RecommendedKinetics | None = None
     validity: dict[str, Any] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
+
+
+class Target(BaseModel):
+    observable: str
+    direction: str
+    severity: float
+    notes: str | None = None
+
+
+class Conditions(BaseModel):
+    reactor: str
+    fuel: str
+    T_K: float | None = None
+    P_bar: float | None = None
+    oxidizer: str | None = None
+
+
+class FocusSet(BaseModel):
+    species: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+
+
+class FailureBrief(BaseModel):
+    raw_sentence: str
+    targets: list[Target] = Field(default_factory=list)
+    conditions: Conditions
+    focus_set: FocusSet = Field(default_factory=FocusSet)
+    evidence_needs: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    case_id: str | None = None
