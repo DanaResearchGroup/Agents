@@ -2,7 +2,7 @@
 
 from .models import PaperRecord, SearchQuery, RegistryResult
 from .registry_builder import RegistryBuilder
-from .io_utils import save_registry
+from .utils import save_registry
 
 __all__ = [
     "PaperRecord",

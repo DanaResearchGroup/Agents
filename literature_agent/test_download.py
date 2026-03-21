@@ -1,7 +1,7 @@
 import sys
 import logging
 from pathlib import Path
-from accelerator.io_utils import download_file
+from accelerator.utils import download_file
 
 # Configure logging to see output
 logging.basicConfig(level=logging.INFO)

@@ -1,0 +1,282 @@
+manual_retrieval_queue:
+- id: https://openalex.org/W4415462220
+  title: Using RMG Out-of-the-Box for Formic Acid Pyrolysis and Oxidation
+  doi: 10.26434/chemrxiv-2025-4pdlb
+  year: 2025
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'Formic Acid Pyrolysis and Oxidation', which
+    are chemical kinetics processes. The use of 'RMG' (Reaction Mechanism Generator)
+    indicates computational modeling of reaction mechanisms, directly relevant to
+    chemical kinetics studies.
+  source_url: https://doi.org/10.26434/chemrxiv-2025-4pdlb
+- id: https://openalex.org/W7124941270
+  title: 'Unraveling reaction pathways in the selective oxidation of dimethoxymethane
+    to formaldehyde: mapping a complex reaction network'
+  doi: 10.1016/j.apsusc.2026.165896
+  year: 2026
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'reaction pathways' and 'mapping a complex
+    reaction network', which are core concepts in chemical kinetics involving reaction
+    mechanisms, rate-determining steps, and network analysis.
+  source_url: https://doi.org/10.1016/j.apsusc.2026.165896
+- id: https://openalex.org/W2171445884
+  title: Design of Density Functionals by Combining the Method of Constraint Satisfaction
+    with Parametrization for Thermochemistry, Thermochemical Kinetics, and Noncovalent
+    Interactions
+  doi: 10.1021/ct0502763
+  year: 2006
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'Thermochemical Kinetics', which is a subfield
+    of chemical kinetics focused on reaction rates and mechanisms in thermochemical
+    processes.
+  source_url: https://doi.org/10.1021/ct0502763
+- id: https://openalex.org/W2444007978
+  title: 'Speciation and the laminar burning velocities of poly(oxymethylene) dimethyl
+    ether 3 (POMDME3) flames: An experimental and modeling study'
+  doi: 10.1016/j.proci.2016.05.058
+  year: 2016
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'laminar burning velocities' and 'experimental
+    and modeling study', which are core topics in chemical kinetics involving flame
+    chemistry, reaction rates, and combustion mechanisms.
+  source_url: https://doi.org/10.1016/j.proci.2016.05.058
+- id: https://openalex.org/W2008200704
+  title: Oxidation of dimethoxymethane in a jet-stirred reactor
+  doi: 10.1016/s0010-2180(01)00227-9
+  year: 2001
+  journal: null
+  priority: high
+  reason: The title 'Oxidation of dimethoxymethane in a jet-stirred reactor' directly
+    indicates a study of chemical reaction rates and mechanisms under controlled conditions,
+    which is central to chemical kinetics.
+  source_url: https://doi.org/10.1016/s0010-2180(01)00227-9
+- id: https://openalex.org/W2318671770
+  title: High Pressure Oxidation of Dimethoxymethane
+  doi: 10.1021/acs.energyfuels.5b00459
+  year: 2015
+  journal: null
+  priority: high
+  reason: The title 'High Pressure Oxidation of Dimethoxymethane' directly indicates
+    a study of oxidation reaction kinetics under high pressure conditions, which falls
+    within the domain of chemical kinetics.
+  source_url: https://doi.org/10.1021/acs.energyfuels.5b00459
+- id: https://openalex.org/W2439763370
+  title: "An experimental and theoretical comparison of C3\u2013C5 linear ketones"
+  doi: 10.1016/j.proci.2016.05.050
+  year: 2016
+  journal: null
+  priority: high
+  reason: The title mentions 'experimental and theoretical comparison' of C3-C5 linear
+    ketones, which suggests the study involves reaction mechanisms, rates, or pathways
+    relevant to chemical kinetics.
+  source_url: https://doi.org/10.1016/j.proci.2016.05.050
+- id: https://openalex.org/W2076239020
+  title: 'Lean and Rich Premixed Dimethoxymethane/Oxygen/Argon Flames: Experimental
+    and Modeling'
+  doi: 10.1080/00102200903462458
+  year: 2010
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'Experimental and Modeling' of dimethoxymethane
+    flames, which directly involves chemical kinetics studies of combustion processes,
+    reaction mechanisms, and rate constants.
+  source_url: https://doi.org/10.1080/00102200903462458
+- id: https://openalex.org/W2593409181
+  title: Investigation on the oxidation chemistry of methanol in laminar premixed
+    flames
+  doi: 10.1016/j.combustflame.2017.02.016
+  year: 2017
+  journal: null
+  priority: high
+  reason: The title directly references oxidation chemistry of methanol in flames,
+    which is a core topic in chemical kinetics involving reaction mechanisms, rates,
+    and pathways in combustion systems.
+  source_url: https://doi.org/10.1016/j.combustflame.2017.02.016
+- id: https://openalex.org/W2329722860
+  title: 'Reactions of Atomic Hydrogen with Formic Acid and Carbon Monoxide in Solid
+    Parahydrogen I: Anomalous Effect of Temperature'
+  doi: 10.1021/jp502470j
+  year: 2014
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'Reactions of Atomic Hydrogen with Formic
+    Acid and Carbon Monoxide', which directly involves chemical kinetics - specifically
+    reaction mechanisms and rates involving atomic hydrogen with these molecules.
+    The mention of 'Anomalous Effect of Temperature' further indicates kinetic studies
+    examining temperature dependence of reaction rates.
+  source_url: https://doi.org/10.1021/jp502470j
+- id: https://openalex.org/W2515357367
+  title: Experimental and Kinetic Modeling Study of C<sub>2</sub>H<sub>2</sub> Oxidation
+    at High Pressure
+  doi: 10.1002/kin.21028
+  year: 2016
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'Kinetic Modeling Study' which directly relates
+    to chemical kinetics, and the focus on C2H2 (acetylene) oxidation at high pressure
+    involves reaction mechanisms and rate constants - core topics in chemical kinetics.
+  source_url: https://doi.org/10.1002/kin.21028
+- id: https://openalex.org/W1969683453
+  title: A detailed chemical kinetic model for high temperature ethanol oxidation
+  doi: 10.1002/(sici)1097-4601(1999)31:3<183::aid-kin3>3.0.co;2-x
+  year: 1999
+  journal: null
+  priority: high
+  reason: The title directly addresses chemical kinetics through the phrase 'detailed
+    chemical kinetic model' and focuses on ethanol oxidation, which is a fundamental
+    chemical kinetics topic involving reaction mechanisms and rates.
+  source_url: https://doi.org/10.1002/(sici)1097-4601(1999)31:3<183::aid-kin3>3.0.co;2-x
+- id: https://openalex.org/W1981551955
+  title: Complex Mechanism of the Gas Phase Reaction between Formic Acid and Hydroxyl
+    Radical. Proton Coupled Electron Transfer versus Radical Hydrogen Abstraction
+    Mechanisms
+  doi: 10.1021/ja0481169
+  year: 2004
+  journal: null
+  priority: high
+  reason: The title directly describes a gas phase reaction mechanism study involving
+    formic acid and hydroxyl radical, which is a core topic in chemical kinetics focusing
+    on reaction pathways and mechanisms.
+  source_url: https://doi.org/10.1021/ja0481169
+- id: https://openalex.org/W1979914819
+  title: An experimental and modeling study of the oxidation of acetylene in a flow
+    reactor
+  doi: 10.1016/j.combustflame.2007.10.011
+  year: 2008
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'experimental and modeling study of the oxidation
+    of acetylene', which directly relates to chemical kinetics as it involves reaction
+    mechanisms, rate constants, and oxidation processes.
+  source_url: https://doi.org/10.1016/j.combustflame.2007.10.011
+- id: https://openalex.org/W1967023734
+  title: A comprehensive theoretical examination of primary dissociation pathways
+    of formic acid
+  doi: 10.1063/1.462204
+  year: 1992
+  journal: null
+  priority: high
+  reason: Formic acid dissociation pathways are fundamental chemical kinetics processes
+    involving bond breaking, reaction mechanisms, and rate constants.
+  source_url: https://doi.org/10.1063/1.462204
+- id: https://openalex.org/W1974875613
+  title: Energetics and kinetics of the reaction of HOCO with hydrogen atoms
+  doi: 10.1063/1.2946696
+  year: 2008
+  journal: null
+  priority: high
+  reason: The title directly mentions 'kinetics' and describes a reaction involving
+    hydrogen atoms and HOCO, which is relevant to chemical kinetics studies of reaction
+    mechanisms and rates.
+  source_url: https://doi.org/10.1063/1.2946696
+- id: https://openalex.org/W43255328
+  title: Rates of hydroxyl radical reactions. 17. Rate and mechanism of the reaction
+    of hydroxyl radicals with formic and deuteriated formic acids
+  doi: 10.1021/ja00231a032
+  year: 1988
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'Rates of hydroxyl radical reactions' and
+    'Rate and mechanism of the reaction of hydroxyl radicals with formic acid', which
+    are core topics in chemical kinetics involving reaction rates and mechanisms of
+    radical reactions.
+  source_url: https://doi.org/10.1021/ja00231a032
+- id: https://openalex.org/W2952597723
+  title: Ab initio kinetics for pyrolysis and combustion systems
+  doi: 10.1016/b978-0-444-64087-1.00002-4
+  year: 2019
+  journal: null
+  priority: high
+  reason: Title explicitly mentions 'kinetics' and focuses on pyrolysis and combustion
+    systems, which are core topics in chemical kinetics involving reaction rates and
+    mechanisms.
+  source_url: https://doi.org/10.1016/b978-0-444-64087-1.00002-4
+- id: https://openalex.org/W4405745790
+  title: Experimental and kinetic modelling study for unconventionally lean and rich
+    methane flames at atmospheric pressure
+  doi: 10.1016/j.ijhydene.2024.12.321
+  year: 2024
+  journal: null
+  priority: high
+  reason: Title explicitly mentions 'kinetic modelling study' and focuses on methane
+    flames, which directly relates to chemical kinetics research involving reaction
+    mechanisms, rates, and combustion processes.
+  source_url: https://doi.org/10.1016/j.ijhydene.2024.12.321
+- id: https://openalex.org/W1978714173
+  title: Kinetics of the reactions of the formyl radical with oxygen, nitrogen dioxide,
+    chlorine, and bromine
+  doi: 10.1021/j100314a017
+  year: 1988
+  journal: null
+  priority: high
+  reason: Title explicitly mentions kinetics of formyl radical reactions with multiple
+    species, which is a core topic in chemical kinetics involving reaction rates and
+    mechanisms.
+  source_url: https://doi.org/10.1021/j100314a017
+- id: https://openalex.org/W1966805426
+  title: Thermal unimolecular decomposition of glyoxal
+  doi: 10.1021/j150650a033
+  year: 1984
+  journal: null
+  priority: high
+  reason: Title directly mentions 'thermal unimolecular decomposition' which is a
+    core chemical kinetics process involving reaction rates and mechanisms for a single
+    molecule breaking down under heat
+  source_url: https://doi.org/10.1021/j150650a033
+- id: https://openalex.org/W1967415278
+  title: Tropospheric Oxidation of Ethyne and But-2-yne. 1. Theoretical Mechanistic
+    Study
+  doi: 10.1021/jp077174o
+  year: 2008
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'oxidation' and 'mechanistic study', which
+    are core concepts in chemical kinetics, specifically focusing on reaction mechanisms
+    and rates in atmospheric chemistry.
+  source_url: https://doi.org/10.1021/jp077174o
+- id: https://openalex.org/W1514943419
+  title: Temperature dependence and deuterium kinetic isotope effects in the ()+ reaction
+    between 296 and 673 K
+  doi: 10.1016/s0009-2614(01)01016-8
+  year: 2001
+  journal: null
+  priority: high
+  reason: The title explicitly mentions temperature dependence and deuterium kinetic
+    isotope effects, which are core concepts in chemical kinetics research involving
+    reaction rates, activation energies, and isotopic substitution studies.
+  source_url: https://doi.org/10.1016/s0009-2614(01)01016-8
+- id: https://openalex.org/W1964411260
+  title: 'Sensitive Absorption Methods for Quantitative Gas Phase Kinetic Measurements.
+    Part 1: Frequency Modulation Spectroscopy'
+  doi: 10.1524/zpch.2008.222.1.1
+  year: 2007
+  journal: null
+  priority: high
+  reason: The title explicitly mentions 'quantitative gas phase kinetic measurements',
+    which directly relates to experimental methods in chemical kinetics, specifically
+    for measuring reaction rates in gas-phase systems.
+  source_url: https://doi.org/10.1524/zpch.2008.222.1.1
+- id: https://openalex.org/W1963534406
+  title: The photo-induced oxidation of acetylene
+  doi: 10.1016/0010-2180(67)90007-7
+  year: 1967
+  journal: null
+  priority: high
+  reason: The title 'The photo-induced oxidation of acetylene' directly references
+    a chemical reaction (oxidation of acetylene) initiated by light (photo-induced),
+    which falls under photochemical kinetics - a subfield of chemical kinetics studying
+    reaction rates and mechanisms under light exposure.
+  source_url: https://doi.org/10.1016/0010-2180(67)90007-7
+- id: https://openalex.org/W1975886868
+  title: Alkyne oxidation I. Acetylene oxidation
+  doi: 10.1098/rspa.1970.0099
+  year: 1970
+  journal: null
+  priority: high
+  reason: Title directly mentions oxidation of acetylene, which is a chemical reaction
+    process involving reaction rates and mechanisms, falling under chemical kinetics.
+  source_url: https://doi.org/10.1098/rspa.1970.0099
