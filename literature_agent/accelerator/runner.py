@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 def run(query_input: str or SearchQuery | List[str], 
         max_results: int = 30, 
         download_si: bool = False, 
+        download_papers: bool = False,
         use_llm: bool = False,
         outdir: str = "outputs",
         snowball: bool = False) -> dict:
@@ -63,7 +64,7 @@ def run(query_input: str or SearchQuery | List[str],
             effective_query = SearchQuery(topic=query_input, snowball=True)
 
     # Pass the res_dir to build_registry so si_files are nested inside
-    result = builder.build_registry(effective_query, download_si=download_si, outdir=str(res_dir), per_strategy_limit=per_strat, snowball=snowball)
+    result = builder.build_registry(effective_query, download_si=download_si, download_papers=download_papers, outdir=str(res_dir), per_strategy_limit=per_strat, snowball=snowball)
     hits = result.papers
     
     print(f"\nFOUND {len(hits)} RELEVANT SOURCES:", flush=True)
@@ -110,6 +111,7 @@ def main() -> None:
     parser.add_argument("--query", dest="query_flag", type=str, help="Alternative way to provide query.")
     parser.add_argument("--max-results", type=int, default=30, help="Results to retrieve.")
     parser.add_argument("--download-si", action="store_true", help="Download SI files.")
+    parser.add_argument("--download-papers", action="store_true", help="Download full OA paper PDFs.")
     parser.add_argument("--mode", choices=["agent", "manual"], default="agent", help="Discovery mode (default: agent).")
     parser.add_argument("--outdir", type=str, default="outputs", help="Output directory.")
     parser.add_argument("--snowball", action="store_true", help="Expand discovery by traversing citations/references.")
@@ -156,7 +158,7 @@ def main() -> None:
             if isinstance(data, dict): search_input = SearchQuery(**data)
         except: pass
 
-    run(search_input, max_results=args.max_results, download_si=args.download_si, use_llm=use_llm, outdir=args.outdir, snowball=args.snowball)
+    run(search_input, max_results=args.max_results, download_si=args.download_si, download_papers=args.download_papers, use_llm=use_llm, outdir=args.outdir, snowball=args.snowball)
 
 if __name__ == "__main__":
     main()

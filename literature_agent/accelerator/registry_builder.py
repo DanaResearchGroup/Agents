@@ -83,7 +83,7 @@ class RegistryBuilder:
 
 ####### Step 3: Build Registry ########
 
-    def build_registry(self, query: SearchQuery | FailureBrief | str | List[str], download_si: bool = False, outdir: str = "outputs", per_strategy_limit: int = 4, snowball: bool = False) -> RegistryResult:
+    def build_registry(self, query: SearchQuery | FailureBrief | str | List[str], download_si: bool = False, download_papers: bool = False, outdir: str = "outputs", per_strategy_limit: int = 4, snowball: bool = False) -> RegistryResult:
         raw_query = None
         if isinstance(query, str):
             raw_query = query
@@ -116,6 +116,7 @@ class RegistryBuilder:
 
         results = []
         si_dir = Path(outdir) / "si_files"
+        papers_dir = Path(outdir) / "papers"
         # Initial Filtering Pass
         for pid, record in registry.items():
             # Europe PMC enrichment (Try DOI first, then fallback to title)
@@ -184,6 +185,9 @@ class RegistryBuilder:
                 
                 if record.si_link_found:
                     self._download_si_files(record, si_dir)
+                    
+                if download_papers and record.oa_url:
+                    self._download_paper(record, papers_dir)
 
         return RegistryResult(papers=results)
 
@@ -248,3 +252,13 @@ class RegistryBuilder:
             download_url = url.split(": ", 1)[-1] if ": " in url else url
             filepath = download_file(download_url, si_dir, fname)
             record.access_notes = (record.access_notes or "") + (f" Saved SI to {filepath.name}. " if filepath else f" Failed download {i}. ")
+
+    def _download_paper(self, record: PaperRecord, papers_dir: Path):
+        if not record.oa_url:
+            return
+        
+        safe_id = record.id.replace("/", "_").replace(":", "_")
+        fname = f"{safe_id}_paper.file"
+        logger.info(f"   [PDF] Attempting to download paper for {record.title[:40]}...")
+        filepath = download_file(record.oa_url, papers_dir, fname)
+        record.access_notes = (record.access_notes or "") + (f" Saved Paper to {filepath.name}. " if filepath else " Failed paper download. ")
