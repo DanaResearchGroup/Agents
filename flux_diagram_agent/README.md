@@ -1,39 +1,55 @@
-# Flux Diagram Extraction Agent MVP
+# Flux Diagram & Sensitivity Analysis Agent
 
-A Python-based pipeline for detecting and extracting pathway information from flux diagrams in computational chemistry literature.
+A powerful Python-based pipeline for detecting, extracting, and prioritizing pathway and sensitivity information from chemical kinetics literature.
 
 ## Features
-- **PDF Parsing**: Robust text and figure extraction using PyMuPDF.
-- **Candidate Filtering**: Keyword-based identification of relevant figures.
-- **DeepSeek Integration**: LLM-powered figure classification and structured data extraction.
-- **Automated Reporting**: Generates both human-readable Markdown and machine-readable JSON reports.
+- **PDF Parsing & Smart Cropping**: Robust figure extraction using PyMuPDF with automated **Subplot Isolation** (Smart Cropping) for focused vision parsing.
+- **Sensitivity Analysis Integration**: Automatically detects and interprets sensitivity bars/charts to extract key reaction coefficients.
+- **Multi-Provider Support**: Supports **DeepSeek** (Reasoner/Chat) and **Zhipu AI (GLM-4V)** for state-of-the-art vision-based diagram interpretation.
+- **Targeted Reaction Ranking**: Groups and ranks reactions by their influence on specific observables (e.g., HOCHO, CO2, laminar burning velocity).
+- **Automated Reporting**: Generates timestamped and organized Markdown/JSON reports with embedded figure crops.
 
 ## Installation
-```bash
-pip install -r requirements.txt
-```
+1. Clone the repository and install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Configure your `.env` file with your API keys:
+   ```bash
+   DEEPSEEK_API_KEY=your_key
+   GLM_API_KEY=your_key
+   ```
 
 ## Usage
+The agent automatically derives the output directory from the PDF name and adds a timestamp for organization.
+
+### Basic Usage (DeepSeek)
 ```bash
-python main.py --pdf path/to/paper.pdf --outdir outputs/
+python main.py --pdf path/to/paper.pdf
 ```
 
-## General Workflow
-The agent follows a systematic pipeline to extract structured data from PDF literature:
-1. **Parsing**: Uses PyMuPDF to extract text and identify figure captions. Entire pages containing potential figures are rendered as images.
-2. **Filtering**: A keyword-based heuristic scores figures to identify "candidates" (e.g., matching "flux", "reaction path").
-3. **Classification**: Uses a Vision-Language Model (DeepSeek) to confirm if a candidate is actually a flux diagram.
-4. **Interpretation**: For confirmed flux diagrams, the LLM extracts structured kinetic data (species, conditions, pathways).
-5. **Aggregation**: Synthesizes findings into a paper-level summary with recommended actions.
-6. **Reporting**: Generates final JSON and Markdown reports.
+### Advanced Usage (GLM-4V Vision)
+Highly recommended for best precision in reading reaction equations from charts.
+```bash
+python main.py --pdf tests/SI.pdf --provider glm --model glm-4v-plus
+```
 
-## Module Responsibilities
-- `agent/engine.py`: Core processing logic (Parsing, Filtering, Aggregation, and Reporting).
-- `agent/brain.py`: AI task logic (LLM Provider, Figure Classification, and Flux Interpretation).
-- `agent/prompts.py`: Centralized LLM prompt templates.
+### Configuration Flags
+- `--pdf`: (Required) Path to the PDF paper.
+- `--provider`: `deepseek` (default) or `glm`.
+- `--model`: Specific model name (e.g., `glm-4v-plus`, `deepseek-reasoner`).
+- `--outdir`: Custom output folder (defaults to `outputs/[paper_name]_[timestamp]/`).
 
 ## Project Structure
-- `agent/`: Core logic modules
-- `main.py`: CLI entry point
-- `prompts/`: LLM prompt templates
-- `outputs/`: Default output directory
+- `agent/engine.py`: Core processing (Parsing, Smart Cropping, Aggregation, Reporting).
+- `agent/brain.py`: Multi-provider LLM logic and task-specific interpretation.
+- `agent/prompts.py`: Optimized prompts for kinetics data extraction.
+- `main.py`: CLI entry point.
+
+## Workflow
+1. **Parsing**: Identifies figure captions and extracts high-resolution horizontal "strips" (subplots) for each figure.
+2. **Filtering**: Scores figures via keywords to identify flux or sensitivity candidates.
+3. **Classification**: LLM confirms the diagram type using isolated subplot images.
+4. **Interpretation**: Extracts species, conditions, and prioritized reaction lists with sensitivity coefficients.
+5. **Aggregation**: Synthesizes a unified, target-grouped reaction ranking across the entire paper.
+6. **Reporting**: Generates visual Markdown summaries and machine-readable JSON results.
