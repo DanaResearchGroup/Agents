@@ -20,7 +20,7 @@ dominant decomposition channels under pyrolysis conditions
 (Figure 10A) are the dehydration and decarboxylation path-
 ways, Reactions R1 and R2, shown by the thickest arrows. Both
 **Classification:** flux diagram (Confidence: 0.95)
-**Reasoning:** The caption explicitly describes 'reaction-pathway flux diagrams' with arrows indicating pathways, including thickness to represent flux, which matches the definition of a flux diagram.
+**Reasoning:** The caption explicitly describes 'reaction-pathway flux diagrams' with 'thickest arrows' indicating flux representation, which is characteristic of flux diagrams.
 
 #### Flux Analysis
 - **System:** Formic acid pyrolysis
@@ -52,7 +52,7 @@ underprediction at higher equivalence ratios, may stem from
 uncertainties in the rate coefficients governing the chain-
 branching reactions, and possibly HOCO-related reaction
 channels (Figure S9).
-**Classification:** species profile (Confidence: 0.9)
-**Reasoning:** The caption and context describe a comparison of laminar burning velocities (LBV) versus equivalence ratio, which is a plot of a species-related property (burning velocity) against a variable (equivalence ratio), typical of species profile figures in chemical kinetics papers.
+**Classification:** other (Confidence: 0.9)
+**Reasoning:** The caption and context describe a figure comparing experimentally measured and simulated laminar burning velocities (LBV) vs. equivalence ratio, which is a plot of a physical property (burning velocity) against a reaction condition (equivalence ratio), not fitting into the specified categories like flux diagram, PES, molecular structure, sensitivity analysis, species profile, or mechanism schematic.
 
 ---

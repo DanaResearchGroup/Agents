@@ -11,7 +11,7 @@
       "caption": "Figure 10 presents detailed reaction-pathway flux diagrams for\nformic acid in a JSR at 1200 K, 1 atm, and 2 s residence time. The\ndominant decomposition channels under pyrolysis conditions\n(Figure 10A) are the dehydration and decarboxylation path-\nways, Reactions R1 and R2, shown by the thickest arrows. Both",
       "page_number": 7,
       "context_text": "Figure 10 presents detailed reaction-pathway flux diagrams for\nformic acid in a JSR at 1200 K, 1 atm, and 2 s residence time. The\ndominant decomposition channels under pyrolysis conditions\n(Figure 10A) are the dehydration and decarboxylation path-\nways, Reactions R1 and R2, shown by the thickest arrows. Both",
-      "page_image_path": "outputs/formic_acid_test_v1/figures/page_7.png",
+      "page_image_path": "outputs/figures/page_7.png",
       "candidate_score": 1.0,
       "candidate_reasons": [
         "found keyword: 'flux'",
@@ -20,7 +20,7 @@
       "classification": {
         "label": "flux diagram",
         "confidence": 0.95,
-        "reasoning": "The caption explicitly describes 'reaction-pathway flux diagrams' with arrows indicating pathways, including thickness to represent flux, which matches the definition of a flux diagram."
+        "reasoning": "The caption explicitly describes 'reaction-pathway flux diagrams' with 'thickest arrows' indicating flux representation, which is characteristic of flux diagrams."
       },
       "flux_analysis": {
         "system": "Formic acid pyrolysis",
@@ -51,15 +51,15 @@
             "evidence": "Decarboxylation pathway (Reaction R2) shown by thickest arrows in Figure 10A"
           }
         ],
-        "quantitative_info": true,
+        "quantitative_info": false,
         "usefulness": "high",
         "use_cases": [
           "Understanding formic acid decomposition mechanisms",
           "Kinetic modeling of pyrolysis processes",
           "Identifying dominant reaction channels"
         ],
-        "uncertainty": "Limited to information from caption; actual figure details (e.g., minor pathways, exact flux values) are unavailable",
-        "confidence": 0.8
+        "uncertainty": "Limited to information from caption only; no direct image analysis possible",
+        "confidence": 0.7
       }
     },
     {
@@ -67,15 +67,15 @@
       "caption": "Figure 6 compares the experimentally measured and\nsimulated laminar burning velocities (LBV, referring to the\nunstretched quantity, SU) of HOCHO/air mixtures. The\n\u201cVanilla\u201d model reproduces the overall bell-shaped dependence\nof the LBV vs the equivalence ratio, with peak velocities\noccurring near stoichiometric conditions. At both initial\ntemperatures, the predicted LBV values are slightly lower than\nthe experimental values, suggesting that the model under-\nestimates the overall reactivity of the mixture, as also noted\nabove. Nevertheless, the shape and location of the peak are\ncaptured reasonably well, indicating that the dominant reaction\npathways controlling the flame propagation are correctly\nrepresented. The remaining deviation, particularly the moderate\nunderprediction at higher equivalence ratios, may stem from\nuncertainties in the rate coefficients governing the chain-\nbranching reactions, and possibly HOCO-related reaction\nchannels (Figure S9).",
       "page_number": 6,
       "context_text": "Figure 6 compares the experimentally measured and\nsimulated laminar burning velocities (LBV, referring to the\nunstretched quantity, SU) of HOCHO/air mixtures. The\n\u201cVanilla\u201d model reproduces the overall bell-shaped dependence\nof the LBV vs the equivalence ratio, with peak velocities\noccurring near stoichiometric conditions. At both initial\ntemperatures, the predicted LBV values are slightly lower than\nthe experimental values, suggesting that the model under-\nestimates the overall reactivity of the mixture, as also noted\nabove. Nevertheless, the shape and location of the peak are\ncaptured reasonably well, indicating that the dominant reaction\npathways controlling the flame propagation are correctly\nrepresented. The remaining deviation, particularly the moderate\nunderprediction at higher equivalence ratios, may stem from\nuncertainties in the rate coefficients governing the chain-\nbranching reactions, and possibly HOCO-related reaction\nchannels (Figure S9).",
-      "page_image_path": "outputs/formic_acid_test_v1/figures/page_6.png",
+      "page_image_path": "outputs/figures/page_6.png",
       "candidate_score": 0.5,
       "candidate_reasons": [
         "found keyword: 'pathway'"
       ],
       "classification": {
-        "label": "species profile",
+        "label": "other",
         "confidence": 0.9,
-        "reasoning": "The caption and context describe a comparison of laminar burning velocities (LBV) versus equivalence ratio, which is a plot of a species-related property (burning velocity) against a variable (equivalence ratio), typical of species profile figures in chemical kinetics papers."
+        "reasoning": "The caption and context describe a figure comparing experimentally measured and simulated laminar burning velocities (LBV) vs. equivalence ratio, which is a plot of a physical property (burning velocity) against a reaction condition (equivalence ratio), not fitting into the specified categories like flux diagram, PES, molecular structure, sensitivity analysis, species profile, or mechanism schematic."
       }
     }
   ],

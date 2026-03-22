@@ -1,4 +1,4 @@
-# Prompt templates for the Flux Diagram Extraction Agent
+# prompt templates for the Flux Diagram Extraction Agent
 
 CLASSIFICATION_SYSTEM_PROMPT = """
 You are a vision-language assistant specializing in chemical kinetics and computational chemistry paper analysis.

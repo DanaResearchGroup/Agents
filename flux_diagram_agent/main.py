@@ -4,13 +4,8 @@ import os
 import sys
 from typing import Dict, Any
 
-from agent.parser.pdf_parser import parse_pdf
-from agent.figure_filter.candidate_filter import filter_figures
-from agent.utils.llm_provider import get_llm_provider
-from agent.classifier.figure_classifier import classify_figure
-from agent.flux_interpreter.flux_interpreter import interpret_flux_diagram
-from agent.aggregator.aggregator import aggregate_results
-from agent.report.report_generator import generate_reports
+from agent.engine import parse_pdf, filter_figures, aggregate_results, generate_reports
+from agent.brain import get_llm_provider, classify_figure, interpret_flux_diagram
 
 # Configure logging
 logging.basicConfig(
