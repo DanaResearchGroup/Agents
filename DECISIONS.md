@@ -223,3 +223,61 @@ This makes it testable and swappable without changing the orchestrator logic.
 `_default_confirm(records) -> int`. Orchestrator.__init__ now accepts optional
 `confirm_fn: Callable[[list[PaperRecord]], int]`, defaults to `_default_confirm`.
 Tests inject lambdas directly instead of monkeypatching builtins.input.
+
+---
+
+## 2026-04-08 — Path 2 rate_params gap: mined reactions have no rate parameters
+
+**Decision:** Deferred. ReactionMiningAgent extracts reaction identities 
+(strings) from flux/sensitivity figures but not rate parameters. 
+ModelBranchingAgent skips reactions with rate_params=None, so Path 2 
+currently produces zero branches in a real run.
+
+**Reason:** Rate parameters are not reliably present in figures — they 
+appear in tables, supplementary Chemkin files, or paper body text. 
+Extracting them requires a separate step not yet implemented.
+
+**What is needed:** One of:
+  a) A RateExtractionAgent that parses paper tables/text for Arrhenius 
+     parameters (A, n, Ea) matched to reaction strings — LLM-assisted
+  b) A database lookup (NIST, ReSpecTh) given a reaction string
+  c) Extracting rate params directly from a literature Chemkin SI file
+
+**Revisit in:** Phase 7, before live smoke test. Path 2 is blocked 
+on this for real runs. Unit tests pass because rate_params is mocked
+
+
+---
+
+**Resolution:** Option C selected. Extract rate parameters directly from 
+the literature Chemkin SI file during Path 1's conversion step. 
+ChemkinConverter already processes this file — add a rate parameter 
+extraction pass that maps reaction strings to Arrhenius params (A, n, Ea) 
+before the file is converted to Cantera YAML format. Pass the resulting 
+dict into Path 2 via Path1Results.
+
+**Implication:** Path1Results needs a new field:
+  extracted_rates: dict[str, dict] | None
+  ← maps normalised reaction string to {A, n, Ea}
+Path 2 uses this to populate CandidateReaction.rate_params before 
+branching. If Path 1 did not run, Path 2 rate_params remain None 
+and branches are skipped with a warning.
+
+---
+
+## 2026-04-08 — Deterministic extraction pipeline retained alongside LLM agent
+
+**Decision:** simulator_agent/literature_support/ intelligence layer 
+(evidence extraction → scenario building → enrichment → validation → 
+planning) is migrated to src/ingestion/pipeline/ rather than deleted.
+
+**Reason:** This deterministic pipeline is more reliable than a single 
+LLM call for standard paper formats. It was incorrectly omitted from 
+the Phase 2 migration scope.
+
+**Architecture:** Deterministic pipeline runs first. LLM ConditionExtractionAgent 
+runs as fallback when deterministic pipeline returns zero results.
+Both outputs are merged before passing to Path 1/2 pipelines.
+
+**Revisit in:** Phase 8b.
+
