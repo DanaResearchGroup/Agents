@@ -1,0 +1,1 @@
+For templates of reactors for inspiration refer to here: /home/calvin/code/T3/t3/simulate
