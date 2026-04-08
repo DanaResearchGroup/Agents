@@ -180,3 +180,21 @@ Path 2, but Path 2 does not require Path 1 results to run.
 **Implications:** `orchestrator.py` reads `config.run_path1` and `config.run_path2`
 flags. Both default to True. The `path1_results` parameter in `run_path2()` is
 `Optional` and defaults to `None`.
+
+--
+
+## 2026-04-08 — SimulationSpec and SimulationResult remain as dataclasses (temporary)
+
+**Decision:** src/simulation/core/ retains stdlib dataclasses for SimulationSpec 
+and SimulationResult rather than converting to Pydantic during Phase 2 migration.
+
+**Reason:** These types operate at a different abstraction level than the 
+orchestrator-facing Pydantic models (SimConditions/SimResult). Forcing the 
+conversion during a move-only phase risked breaking Cantera logic.
+
+**Implications:** Two type systems still exist internally. These must be converted 
+to Pydantic and unified with SimConditions/SimResult before Path 1/2 pipelines 
+are built (Phase 5), because the pipelines need a single consistent type at the 
+simulation boundary.
+
+**Revisit in:** Phase 5, before pipelines/path1.py is written.

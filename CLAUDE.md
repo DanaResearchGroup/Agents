@@ -176,8 +176,8 @@ These are NEW and need to be built:
 - [x] src/agents/llm_client.py — LiteLLM wrapper
 
 ### Phase 2 — Migration (blocked on Phase 1)
-- [ ] src/simulation/ — move deterministic code
-- [ ] src/ingestion/ — move retrieval + parsing
+- [X] src/simulation/ — move deterministic code
+- [X] src/ingestion/ — move retrieval + parsing
 
 ### Phase 3 — LLM boundary fix (blocked on Phase 1)
 - [ ] src/agents/reaction_mining.py — replace DeepSeek/GLM with LiteLLM
