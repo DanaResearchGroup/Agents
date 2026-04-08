@@ -162,19 +162,34 @@ These are NEW and need to be built:
 
 ## Current status
 
-> Update this section at the start of each session.
+### Exists and works (pre-migration, in original locations)
+- [x] Reactor families: simulator_agent/literature_support/families/
+- [x] Jinja2 templates: simulator_agent/templates/
+- [x] MAE module: simulator_agent/core/mae.py
+- [x] Cantera runner: simulator_agent/core/runner.py
+- [x] PDF parser: simulator_agent/literature_support/parser/
+- [x] Paper retrieval clients: literature_agent/accelerator/clients.py
+- [x] Figure handler: simulator_agent/literature_support/figure_handler/
 
-- [ ] Repo restructure complete
-- [ ] `src/schemas/experimental.py` — Pydantic models defined
-- [ ] `src/agents/llm_client.py` — LiteLLM wrapper
-- [ ] `src/simulation/` — migrated and tested
-- [ ] `src/ingestion/` — migrated and tested
-- [ ] `src/agents/conversion.py` — Chemkin → Cantera
-- [ ] `src/agents/validators.py` — ModelIsolationValidator
-- [ ] `src/pipelines/path1.py` — Path 1 end-to-end
-- [ ] `src/pipelines/path2.py` — Path 2 end-to-end
-- [ ] `src/orchestrator.py` — top-level routing
-- [ ] Report generation end-to-end
+### Phase 1 — Foundation (complete) 
+- [x] src/schemas/experimental.py — unified Pydantic models
+- [x] src/agents/llm_client.py — LiteLLM wrapper
+
+### Phase 2 — Migration (blocked on Phase 1)
+- [ ] src/simulation/ — move deterministic code
+- [ ] src/ingestion/ — move retrieval + parsing
+
+### Phase 3 — LLM boundary fix (blocked on Phase 1)
+- [ ] src/agents/reaction_mining.py — replace DeepSeek/GLM with LiteLLM
+
+### Phase 4 — Orchestrator rework
+- [ ] src/orchestrator.py
+
+### Phase 5 — New components
+- [ ] src/agents/conversion.py
+- [ ] src/agents/validators.py
+- [ ] src/pipelines/path1.py
+- [ ] src/pipelines/path2.py
 
 ---
 
