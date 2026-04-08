@@ -212,6 +212,15 @@ All code migrated to src/. Legacy dirs removed: simulator_agent/, literature_age
 - [x] Legacy directories deleted (125 files, 33k lines removed)
 - [x] 157/157 tests pass
 
+### Phase 9 — Integration tests (real Cantera, mocked LLM)
+- [x] tests/fixtures/models/h2o2_simple.yaml — 9 species, 8 reactions (Cantera-generated)
+- [x] tests/fixtures/models/h2o2_literature.yaml — 9 species, 8 non-overlapping reactions
+- [x] tests/fixtures/experimental/h2o2_idt.yaml — 1 shock tube condition at 1200K/1atm
+- [x] tests/fixtures/papers/h2o2_paper.json — minimal PaperRecord fixture
+- [x] tests/integration/test_end_to_end.py — 5 integration tests (Path1 e2e, isolation, Path2 e2e, report structure, upload ingestion)
+- [x] 4 integration bugs found and documented in DECISIONS.md
+- [x] 162/162 tests pass
+
 ---
 
 ## Key contacts / references

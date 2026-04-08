@@ -295,3 +295,69 @@ without pulling in the full dependency stack.
 **Implications:** Test patches must target source modules directly 
 (e.g. src.orchestrator.Orchestrator) not the cli module.
 
+
+---
+## 2026-04-08 — Two-layer validation on Pydantic models
+
+**Decision:** Four models (FieldConfidence, NormalizedCondition, 
+NormalizedComposition, SimulationPlan) have both @model_validator 
+decorators AND validate() methods returning ValidationResult.
+
+**Reason:** They serve different purposes.
+- @model_validator: structural correctness at construction time — 
+  invalid objects cannot exist (e.g. min > max, missing required fields)
+- validate(): domain plausibility checks run by plan_validator.py — 
+  accumulated warnings/errors for physical reasonableness, family 
+  compatibility, assumption audits. These are not hard failures.
+
+**Implication:** Do not collapse them. A plan can be structurally 
+valid (passes @model_validator) but domain-suspect (validate() 
+returns warnings). Both signals matter.
+
+---
+
+## 2026-04-09 — Integration bug: FigureCaption field names differ from docstring
+
+**Context:** Phase 9 integration tests constructed `FigureCaption(page=1)` based on
+intuitive field naming, but the actual Pydantic model requires `page_num` and
+`label_type` (both required, no defaults).
+
+**Fix:** Used correct field names in test fixtures. No source change needed —
+the schema is correct, the tests were wrong.
+
+**Lesson:** Always introspect `model_fields` before constructing Pydantic models
+in tests rather than guessing field names.
+
+---
+
+## 2026-04-09 — Integration bug: PaperDocument requires pdf_path
+
+**Context:** `PaperDocument` has `pdf_path` as a required field with no default.
+Integration tests omitted it when constructing mock documents.
+
+**Fix:** Added `pdf_path` to mock PaperDocument construction in tests.
+
+---
+
+## 2026-04-09 — Integration bug: FluxConditions uses string fields, not float
+
+**Context:** `FluxConditions.temperature` and `.pressure` are `str` type (e.g.
+`"1200 K"`, `"1 atm"`), not `float`. Integration tests passed float literals.
+
+**Fix:** Changed to string values matching the schema.
+
+---
+
+## 2026-04-09 — Integration bug: _find_mechanism expects Chemkin extensions
+
+**Context:** `_find_mechanism()` in path1.py scans SI directory for Chemkin file
+extensions (`.inp`, `.dat`, `.ck`, `.chem`). Integration test fixtures use Cantera
+YAML files (`.yaml`), so `_find_mechanism` raises "No mechanism found in SI".
+
+**Fix:** Mocked `_find_mechanism` in integration tests to return the literature
+model path directly, since the test's purpose is end-to-end pipeline flow, not
+file-extension scanning.
+
+---
+
+
