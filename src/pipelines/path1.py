@@ -13,6 +13,7 @@ from src.agents.conversion import ChemkinConverter
 from src.agents.llm_client import LLMClient
 from src.agents.validators import ModelIsolationValidator
 from src.ingestion.pdf_parser import parse_pdf
+from src.ingestion.pipeline.extractor import PaperExtractionPipeline
 from src.schemas.experimental import (
     ExperimentalCondition,
     ExperimentalDataset,
@@ -21,6 +22,7 @@ from src.schemas.experimental import (
     Path1Results,
     ReactorType,
     SimConditions,
+    SimulationPlan,
 )
 from src.schemas.ingestion import PaperRecord
 from src.simulation.core.mae import compute_mae
@@ -47,6 +49,90 @@ _OBSERVABLE_MAP: dict[ObservableType, str] = {
 
 # File extensions that indicate a Chemkin mechanism file
 _CHEMKIN_EXTENSIONS = {".inp", ".dat", ".ck", ".chem"}
+
+# Map experiment_family strings (from pipeline) to ReactorType enums
+_FAMILY_TO_REACTOR: dict[str, ReactorType] = {
+    "shock_tube": ReactorType.SHOCK_TUBE,
+    "jsr": ReactorType.JSR,
+    "flow_reactor": ReactorType.PFR,
+    "flame": ReactorType.FLAME,
+    "rcm": ReactorType.RCM,
+}
+
+# Map observable strings (from pipeline) to ObservableType enums
+_OBS_TO_ENUM: dict[str, ObservableType] = {
+    "ignition_delay": ObservableType.IDT,
+    "species_profile": ObservableType.SPECIES_PROFILE,
+    "flame_speed": ObservableType.FLAME_SPEED,
+    "extinction_strain_rate": ObservableType.K_EXT,
+}
+
+
+def _plan_to_conditions(plan: SimulationPlan) -> SimConditions | None:
+    """Convert a SimulationPlan to SimConditions.
+
+    Returns None if the plan is missing required fields (T, P, composition)
+    or uses an unsupported experiment family.
+    """
+    reactor = _FAMILY_TO_REACTOR.get(plan.experiment_family)
+    if reactor is None:
+        logger.debug("Unsupported family for conditions: %s", plan.experiment_family)
+        return None
+
+    if plan.temperature is None or plan.pressure is None or plan.composition is None:
+        logger.debug("Plan %s missing T/P/X", plan.scenario_id)
+        return None
+
+    # Use midpoint for ranges
+    T = (plan.temperature.min_value + plan.temperature.max_value) / 2.0
+    P_raw = (plan.pressure.min_value + plan.pressure.max_value) / 2.0
+
+    # Convert pressure to atm (SimConditions expects atm)
+    unit = plan.pressure.unit.lower()
+    if unit == "bar":
+        P = P_raw / 1.01325
+    elif unit in ("kpa",):
+        P = P_raw / 101.325
+    elif unit in ("mpa",):
+        P = P_raw / 0.101325
+    elif unit == "pa":
+        P = P_raw / 101325.0
+    else:  # atm or unknown
+        P = P_raw
+
+    X = plan.composition.species
+    if not X:
+        logger.debug("Plan %s has empty composition", plan.scenario_id)
+        return None
+
+    obs = ObservableType.IDT  # default
+    if plan.target_observables:
+        mapped = _OBS_TO_ENUM.get(plan.target_observables[0])
+        if mapped:
+            obs = mapped
+
+    return SimConditions(
+        reactor_type=reactor,
+        T=T,
+        P=P,
+        X=X,
+        observable_type=obs,
+    )
+
+
+def _deduplicate_conditions(conditions: list[SimConditions]) -> list[SimConditions]:
+    """Remove duplicate conditions by (reactor_type, T, P, observable_type).
+
+    Uses rounded T and P for comparison to avoid float noise.
+    """
+    seen: set[tuple] = set()
+    deduped: list[SimConditions] = []
+    for c in conditions:
+        key = (c.reactor_type, round(c.T, 1), round(c.P, 4), c.observable_type)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(c)
+    return deduped
 
 
 def _find_mechanism(paper: PaperRecord) -> Path:
@@ -177,11 +263,32 @@ async def run_path1(
 
     # ── Step 4: Extract conditions ───────────────────────────────────────
     document = parse_pdf(paper.pdf_path)
-    agent = ConditionExtractionAgent(llm_client)
-    conditions = await agent.extract(document)
+
+    # Stage 1: deterministic pipeline
+    pipeline = PaperExtractionPipeline()
+    plans = pipeline.extract(document)
+    conditions: list[SimConditions] = []
+    for plan in plans:
+        cond = _plan_to_conditions(plan)
+        if cond is not None:
+            conditions.append(cond)
+    logger.info("Deterministic pipeline: %d conditions", len(conditions))
+
+    # Stage 2: LLM fallback (only if deterministic pipeline returns zero)
+    if not conditions:
+        logger.warning(
+            "Deterministic pipeline returned 0 conditions, "
+            "falling back to LLM extraction"
+        )
+        agent = ConditionExtractionAgent(llm_client)
+        conditions = await agent.extract(document)
+
+    # Deduplicate by (reactor_type, T, P, observable_type)
+    conditions = _deduplicate_conditions(conditions)
+
     if not conditions:
         raise ValueError("No conditions extracted")
-    logger.info("Extracted %d conditions from paper", len(conditions))
+    logger.info("Total conditions after dedup: %d", len(conditions))
 
     # ── Step 5 & 6: Simulate and compute MAE ─────────────────────────────
     mae_results: list[MAEResult] = []

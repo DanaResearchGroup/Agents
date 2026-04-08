@@ -11,10 +11,13 @@ from src.schemas.experimental import (
     ExperimentalCondition,
     ExperimentalDataset,
     MAEResult,
+    NormalizedComposition,
+    NormalizedCondition,
     ObservableType,
     Path1Results,
     ReactorType,
     SimConditions,
+    SimulationPlan,
 )
 from src.schemas.ingestion import PaperRecord
 from src.simulation.core.runner import SimulationResult
@@ -412,3 +415,188 @@ async def test_majority_logic_original_better(
 
     assert result.literature_better_count == 0
     assert result.overall_literature_better is False
+
+
+# ── Helpers for deterministic pipeline tests ─────────────────────────────────
+
+
+def _make_executable_plan(
+    scenario_id: str = "scenario_1",
+    family: str = "shock_tube",
+    T_min: float = 1200.0,
+    T_max: float = 1200.0,
+    P: float = 1.0,
+    species: dict | None = None,
+    observable: str = "ignition_delay",
+) -> SimulationPlan:
+    return SimulationPlan(
+        scenario_id=scenario_id,
+        experiment_family=family,
+        template_family="idt_const_uv",
+        plan_status="executable",
+        temperature=NormalizedCondition(
+            raw_text=f"{T_min}-{T_max} K",
+            kind="temperature",
+            role="setup_range",
+            is_range=T_min != T_max,
+            min_value=T_min,
+            max_value=T_max,
+            unit="K",
+            source_page=1,
+        ),
+        pressure=NormalizedCondition(
+            raw_text=f"{P} atm",
+            kind="pressure",
+            role="setpoint",
+            is_range=False,
+            min_value=P,
+            max_value=P,
+            unit="atm",
+            source_page=1,
+        ),
+        composition=NormalizedComposition(
+            species=species or {"H2": 0.5, "O2": 0.5},
+            balance_species=None,
+            composition_complete=True,
+            raw_mentions=["50% H2 / 50% O2"],
+            source_pages=[1],
+        ),
+        target_observables=[observable],
+        auto_generation_allowed=True,
+    )
+
+
+def _pipeline_patches(plans: list[SimulationPlan]):
+    """Shared patches for deterministic pipeline tests."""
+    from src.schemas.experimental import ConversionResult, PaperDocument, PageText
+
+    return {
+        "converter_cls": patch(
+            "src.pipelines.path1.ChemkinConverter",
+            return_value=MagicMock(
+                convert=AsyncMock(return_value=ConversionResult(
+                    success=True, output_path=Path("/tmp/mech.yaml"), attempts=1,
+                )),
+                extract_rates=MagicMock(return_value={}),
+            ),
+        ),
+        "validator_cls": patch(
+            "src.pipelines.path1.ModelIsolationValidator",
+            return_value=MagicMock(validate_path1=MagicMock(return_value=None)),
+        ),
+        "parse_pdf": patch(
+            "src.pipelines.path1.parse_pdf",
+            return_value=PaperDocument(
+                pdf_path="/tmp/paper.pdf",
+                title="Test",
+                pages=[PageText(page_num=1, text="shock tube T=1200K 1 atm")],
+                captions=[],
+            ),
+        ),
+        "pipeline": patch(
+            "src.pipelines.path1.PaperExtractionPipeline",
+            return_value=MagicMock(extract=MagicMock(return_value=plans)),
+        ),
+    }
+
+
+# ── Test: deterministic pipeline returns conditions → LLM not called ─────────
+
+
+@pytest.mark.asyncio
+async def test_deterministic_pipeline_skips_llm(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+):
+    """When deterministic pipeline returns conditions, LLM agent is NOT called."""
+    plans = [_make_executable_plan()]
+    pp = _pipeline_patches(plans)
+
+    llm_agent_cls = MagicMock()
+
+    with (
+        pp["converter_cls"],
+        pp["validator_cls"],
+        pp["parse_pdf"],
+        pp["pipeline"],
+        patch("src.pipelines.path1.ConditionExtractionAgent", llm_agent_cls),
+        patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        result = await run_path1(paper, original_model, experimental_data, llm_client)
+
+    # LLM agent class should never be instantiated
+    llm_agent_cls.assert_not_called()
+    assert result.conditions_tested >= 1
+
+
+# ── Test: deterministic pipeline empty → LLM fallback called ─────────────────
+
+
+@pytest.mark.asyncio
+async def test_deterministic_empty_triggers_llm_fallback(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+):
+    """When deterministic pipeline returns [], LLM extraction is called as fallback."""
+    pp = _pipeline_patches([])  # empty plans
+
+    llm_extract_mock = AsyncMock(return_value=TWO_CONDITIONS)
+    llm_agent_instance = MagicMock(extract=llm_extract_mock)
+    llm_agent_cls = MagicMock(return_value=llm_agent_instance)
+
+    with (
+        pp["converter_cls"],
+        pp["validator_cls"],
+        pp["parse_pdf"],
+        pp["pipeline"],
+        patch("src.pipelines.path1.ConditionExtractionAgent", llm_agent_cls),
+        patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        result = await run_path1(paper, original_model, experimental_data, llm_client)
+
+    # LLM agent should have been instantiated and called
+    llm_agent_cls.assert_called_once_with(llm_client)
+    llm_extract_mock.assert_awaited_once()
+    assert result.conditions_tested == 2
+
+
+# ── Test: deduplication removes identical conditions ─────────────────────────
+
+
+def test_deduplication_removes_identical_conditions():
+    """Identical (reactor_type, T, P, observable_type) are deduplicated."""
+    from src.pipelines.path1 import _deduplicate_conditions
+
+    conditions = [
+        SimConditions(
+            reactor_type=ReactorType.SHOCK_TUBE,
+            T=1200.0, P=1.0,
+            X={"H2": 0.5, "O2": 0.5},
+            observable_type=ObservableType.IDT,
+        ),
+        SimConditions(
+            reactor_type=ReactorType.SHOCK_TUBE,
+            T=1200.0, P=1.0,
+            X={"H2": 0.3, "O2": 0.7},  # different X, same T/P/reactor/obs
+            observable_type=ObservableType.IDT,
+        ),
+        SimConditions(
+            reactor_type=ReactorType.SHOCK_TUBE,
+            T=1400.0, P=1.0,
+            X={"H2": 0.5, "O2": 0.5},
+            observable_type=ObservableType.IDT,
+        ),
+    ]
+    result = _deduplicate_conditions(conditions)
+    # First two share (SHOCK_TUBE, 1200.0, 1.0, IDT) → one kept
+    assert len(result) == 2
+    assert result[0].T == 1200.0
+    assert result[1].T == 1400.0
