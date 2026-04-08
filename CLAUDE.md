@@ -50,6 +50,10 @@ repo/
       reactors/          ← IDT, JSR, PFR, Flame (one class per reactor type)
       templates/         ← Jinja2 .j2 templates for Cantera code generation
     ingestion/           ← paper retrieval (DOI/upload/search), PDF parsing, figures
+      pipeline/          ← deterministic extraction: evidence → scenarios → plans
+        families/        ← experiment family registry (shock_tube, jsr, etc.)
+        builder/         ← candidate/scenario extraction, enrichment, validation
+        report/          ← JSON/markdown output writers
     agents/
       llm_client.py      ← ONLY place LiteLLM is called. Never call LiteLLM directly elsewhere.
       condition_extraction.py
@@ -162,14 +166,8 @@ These are NEW and need to be built:
 
 ## Current status
 
-### Exists and works (pre-migration, in original locations)
-- [x] Reactor families: simulator_agent/literature_support/families/
-- [x] Jinja2 templates: simulator_agent/templates/
-- [x] MAE module: simulator_agent/core/mae.py
-- [x] Cantera runner: simulator_agent/core/runner.py
-- [x] PDF parser: simulator_agent/literature_support/parser/
-- [x] Paper retrieval clients: literature_agent/accelerator/clients.py
-- [x] Figure handler: simulator_agent/literature_support/figure_handler/
+### Legacy directories (DELETED in Phase 8b)
+All code migrated to src/. Legacy dirs removed: simulator_agent/, literature_agent/, flux_diagram_agent/, Agent_demo/
 
 ### Phase 1 — Foundation (complete) 
 - [x] src/schemas/experimental.py — unified Pydantic models
@@ -204,6 +202,15 @@ These are NEW and need to be built:
 - [x] src/cli.py — argparse CLI with run/validate-model/convert commands
 - [x] config/llm_config.yaml — example LLM config with agent_overrides
 - [x] tests/test_cli.py — 16 tests covering arg parsing, paper sources, all commands
+
+### Phase 8b — Deterministic extraction pipeline + legacy cleanup
+- [x] src/ingestion/pipeline/ — full deterministic extraction pipeline (10 modules)
+- [x] src/ingestion/pipeline/families/ — experiment family registry (5 families)
+- [x] src/ingestion/pipeline/extractor.py — PaperExtractionPipeline coordinator
+- [x] src/pipelines/path1.py — two-stage extraction (deterministic-first, LLM fallback)
+- [x] src/schemas/experimental.py — validate() compatibility methods on 4 Pydantic models
+- [x] Legacy directories deleted (125 files, 33k lines removed)
+- [x] 157/157 tests pass
 
 ---
 

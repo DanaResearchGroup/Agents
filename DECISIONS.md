@@ -279,7 +279,7 @@ the Phase 2 migration scope.
 runs as fallback when deterministic pipeline returns zero results.
 Both outputs are merged before passing to Path 1/2 pipelines.
 
-**Revisit in:** Phase 8b.
+**Status:** RESOLVED — migrated in Phase 8b. Pipeline now at src/ingestion/pipeline/.
 
 ---
 
