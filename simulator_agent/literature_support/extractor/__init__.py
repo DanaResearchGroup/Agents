@@ -1,1 +1,0 @@
-from .evidence_extractor import extract_evidence
