@@ -525,3 +525,26 @@ class RunConfig(BaseModel):
     run_path2: bool = True
     output_dir: Path = Path("data/reports")
     llm_config: Path = Path("config/llm_config.yaml")
+
+
+# ── Condition extraction models ──────────────────────────────────────────────
+
+
+class ExtractionResult(BaseModel):
+    """Output of the ConditionExtractionAgent."""
+    conditions: list[SimConditions]
+    confidence: float
+    notes: str | None = None
+
+
+# ── Path 1 pipeline results ─────────────────────────────────────────────────
+
+
+class Path1Results(BaseModel):
+    """Aggregated results from a Path 1 (Literature Model Evaluation) run."""
+    literature_model_path: Path
+    source_doi: str | None = None
+    conditions_tested: int
+    mae_results: list[MAEResult]
+    literature_better_count: int
+    overall_literature_better: bool

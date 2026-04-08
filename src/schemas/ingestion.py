@@ -29,6 +29,8 @@ class PaperRecord(BaseModel):
     best_use: str | None = None
     references: list[str] = Field(default_factory=list)
     citations: list[str] = Field(default_factory=list)
+    pdf_path: str | None = None
+    si_path: str | None = None
 
 class SearchQuery(BaseModel):
     topic: str

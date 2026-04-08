@@ -11,6 +11,7 @@ import yaml
 from src.agents.llm_client import LLMClient
 from src.ingestion.pdf_parser import parse_pdf
 from src.ingestion.retrieval import OpenAlexClient
+from src.pipelines.path1 import run_path1
 from src.schemas.experimental import (
     ExperimentalDataset,
     PaperSource,
@@ -131,10 +132,14 @@ class Orchestrator:
 
     # ── Pipeline stubs ──────────────────────────────────────────────────
 
-    async def _run_path1(self, paper: PaperRecord) -> None:
-        """Path 1: Literature Model Evaluation (stub)."""
-        logger.info("Path 1 not yet implemented")
-        return None
+    async def _run_path1(self, paper: PaperRecord) -> object:
+        """Path 1: Literature Model Evaluation."""
+        return await run_path1(
+            paper=paper,
+            original_model=self.config.original_model,
+            experimental_data=self.dataset,
+            llm_client=self.llm_client,
+        )
 
     async def _run_path2(self, paper: PaperRecord) -> None:
         """Path 2: Targeted Model Improvements (stub)."""

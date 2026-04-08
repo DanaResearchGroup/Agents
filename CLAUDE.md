@@ -188,7 +188,7 @@ These are NEW and need to be built:
 ### Phase 5 — New components
 - [x] src/agents/conversion.py
 - [x] src/agents/validators.py
-- [ ] src/pipelines/path1.py
+- [x] src/pipelines/path1.py
 - [ ] src/pipelines/path2.py
 
 ---
