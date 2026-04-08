@@ -1,0 +1,11 @@
+{
+  "id": "h2o2_fixture",
+  "title": "Shock tube measurements of ignition delay times for H2/O2/AR mixtures",
+  "authors": ["A. Test", "B. Fixture"],
+  "year": 2024,
+  "doi": "10.1234/test.h2o2.2024",
+  "abstract": "We report shock tube ignition delay time measurements for H2/O2/AR mixtures at temperatures of 1000-1400 K and pressures of 1-10 atm. Experiments were performed behind reflected shock waves. Flux diagram analysis reveals dominant pathways through H + O2 chain branching.",
+  "provenance": "integration_test_fixture",
+  "pdf_path": null,
+  "si_path": null
+}
