@@ -7,8 +7,9 @@ or optionally from literature_support (from PDF-derived plans).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Literal
+
+from pydantic import BaseModel, Field
 
 
 ReactorType = Literal[
@@ -29,8 +30,7 @@ Observable = Literal[
 ]
 
 
-@dataclass
-class SimulationSpec:
+class SimulationSpec(BaseModel):
     """Fully normalized specification for one simulation run.
 
     All values are in SI units:
@@ -48,7 +48,7 @@ class SimulationSpec:
     # Conditions
     temperature: float = 0.0               # K
     pressure: float = 0.0                  # Pa
-    composition: dict[str, float] = field(default_factory=dict)  # species -> mole fraction
+    composition: dict[str, float] = Field(default_factory=dict)  # species -> mole fraction
     equivalence_ratio: float | None = None
     residence_time: float | None = None    # s (JSR, flow reactor)
 

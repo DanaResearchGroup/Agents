@@ -15,8 +15,9 @@ Reactor type -> Cantera class mapping:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Any
+
+from pydantic import BaseModel, Field
 
 from src.simulation.core.simulation_spec import SimulationSpec
 
@@ -34,16 +35,15 @@ _ATOL = 1e-16
 _RTOL = 1e-8
 
 
-@dataclass
-class SimulationResult:
+class SimulationResult(BaseModel):
     """Raw output from a single simulation run."""
     experiment_id: str
     mechanism: str
-    times: list[float] = field(default_factory=list)
-    temperature_history: list[float] = field(default_factory=list)
-    pressure_history: list[float] = field(default_factory=list)
-    species_histories: dict[str, list[float]] = field(default_factory=dict)
-    extra: dict[str, Any] = field(default_factory=dict)
+    times: list[float] = Field(default_factory=list)
+    temperature_history: list[float] = Field(default_factory=list)
+    pressure_history: list[float] = Field(default_factory=list)
+    species_histories: dict[str, list[float]] = Field(default_factory=dict)
+    extra: dict[str, Any] = Field(default_factory=dict)
     success: bool = True
     error: str | None = None
 

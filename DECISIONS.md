@@ -198,3 +198,28 @@ are built (Phase 5), because the pipelines need a single consistent type at the
 simulation boundary.
 
 **Revisit in:** Phase 5, before pipelines/path1.py is written.
+
+**RESOLVED (2026-04-08):** Converted both SimulationSpec (simulation_spec.py) and
+SimulationResult (runner.py) from stdlib dataclasses to Pydantic v2 BaseModel.
+Same fields, same names, `dataclasses.field(default_factory=...)` →
+`pydantic.Field(default_factory=...)`. All 17 simulation tests pass unchanged.
+
+---
+
+## 2026-04-08 — search ingestion uses input() for now (non-interactive TODO)
+
+**Decision:** ingest_paper() search mode uses input() for user confirmation.
+
+**Reason:** Sufficient for interactive single-user use in Phase 4.
+
+**Implications:** Must be replaced before any CI/batch/headless use.
+Replace with an injected confirmation callback:
+  confirm_fn: Callable[[list[PaperRecord]], int] = default_input_confirm
+This makes it testable and swappable without changing the orchestrator logic.
+
+**Revisit in:** Phase 5, or when first non-interactive run is needed.
+
+**RESOLVED (2026-04-08):** Extracted input() logic into module-level
+`_default_confirm(records) -> int`. Orchestrator.__init__ now accepts optional
+`confirm_fn: Callable[[list[PaperRecord]], int]`, defaults to `_default_confirm`.
+Tests inject lambdas directly instead of monkeypatching builtins.input.
