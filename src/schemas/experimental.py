@@ -292,6 +292,17 @@ class FieldConfidence(BaseModel):
         core = [self.composition, self.temperature, self.pressure]
         return min(core) if all(c > 0 for c in core) else 0.0
 
+    def validate(self) -> ValidationResult:
+        """Check all confidence values are in [0, 1]."""
+        errors: list[str] = []
+        for name in ("composition", "temperature", "pressure", "family", "observable"):
+            val = getattr(self, name)
+            if not (0.0 <= val <= 1.0):
+                errors.append(f"{name} confidence {val} not in [0, 1]")
+        if self.panel_extraction is not None and not (0.0 <= self.panel_extraction <= 1.0):
+            errors.append(f"panel_extraction confidence {self.panel_extraction} not in [0, 1]")
+        return ValidationResult(valid=len(errors) == 0, errors=errors)
+
 
 class ExperimentalScenario(BaseModel):
     """One coherent experimental condition set that can be simulated."""
@@ -349,6 +360,17 @@ class NormalizedCondition(BaseModel):
             )
         return self
 
+    def validate(self) -> ValidationResult:
+        """Report-style validation (returns errors instead of raising)."""
+        errors: list[str] = []
+        if self.min_value > self.max_value:
+            errors.append(f"min_value ({self.min_value}) > max_value ({self.max_value})")
+        if not self.unit:
+            errors.append("unit is empty")
+        if not self.kind:
+            errors.append("kind is empty")
+        return ValidationResult(valid=len(errors) == 0, errors=errors)
+
 
 class NormalizedComposition(BaseModel):
     """Structured composition with species fractions."""
@@ -369,6 +391,22 @@ class NormalizedComposition(BaseModel):
         if total > 1.01:
             raise ValueError(f"species fractions sum to {total:.4f} (> 1.0)")
         return self
+
+    def validate(self) -> ValidationResult:
+        """Report-style validation (returns errors instead of raising)."""
+        errors: list[str] = []
+        warnings: list[str] = []
+        for sp, frac in self.species.items():
+            if frac < 0:
+                errors.append(f"negative fraction for {sp}: {frac}")
+            if frac > 1.0:
+                errors.append(f"fraction > 1.0 for {sp}: {frac}")
+        total = sum(self.species.values())
+        if total > 1.01:
+            errors.append(f"species fractions sum to {total:.4f} (> 1.0)")
+        if not self.composition_complete and total < 0.99:
+            warnings.append(f"composition incomplete: fractions sum to {total:.4f}")
+        return ValidationResult(valid=len(errors) == 0, errors=errors, warnings=warnings)
 
 
 # ── Planner models ───────────────────────────────────────────────────────
@@ -428,6 +466,32 @@ class SimulationPlan(BaseModel):
         if self.template_family == "unsupported" and self.plan_status != "blocked":
             raise ValueError("unsupported template but plan not blocked")
         return self
+
+    def validate(self) -> ValidationResult:
+        """Report-style validation (returns errors instead of raising)."""
+        errors: list[str] = []
+        warnings: list[str] = []
+        if self.plan_status == "executable":
+            if self.missing_fields:
+                errors.append(f"executable plan has missing fields: {self.missing_fields}")
+            if self.blocking_fields:
+                errors.append(f"executable plan has blocking fields: {self.blocking_fields}")
+            if not self.auto_generation_allowed:
+                errors.append("executable plan has auto_generation_allowed=False")
+        elif self.plan_status == "draft":
+            if not self.missing_fields and not self.blocking_fields:
+                warnings.append("draft plan has no missing or blocking fields — could be executable")
+        for cond in (self.temperature, self.pressure, self.residence_time, self.equivalence_ratio):
+            if cond is not None:
+                r = cond.validate()
+                errors.extend(r.errors)
+        if self.composition is not None:
+            r = self.composition.validate()
+            errors.extend(r.errors)
+            warnings.extend(r.warnings)
+        if self.template_family == "unsupported" and self.plan_status != "blocked":
+            errors.append("unsupported template but plan not blocked")
+        return ValidationResult(valid=len(errors) == 0, errors=errors, warnings=warnings)
 
 
 # ── Reaction mining models ───────────────────────────────────────────────
