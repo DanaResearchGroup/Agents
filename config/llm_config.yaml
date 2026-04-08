@@ -1,0 +1,22 @@
+# LLM provider configuration for chem-agent
+#
+# provider options: anthropic, openai, ollama
+# For Ollama, set base_url to http://localhost:11434
+provider: anthropic
+model: claude-sonnet-4-6
+
+# Set here or via environment variable (ANTHROPIC_API_KEY, OPENAI_API_KEY)
+api_key: ""
+
+# Override for self-hosted / Ollama
+base_url: null
+
+# Optional: use different models per agent
+# Cheaper models for fast extraction, stronger for reaction mining
+agent_overrides:
+  condition_extraction:
+    model: claude-haiku-4-5
+  reaction_mining:
+    model: claude-sonnet-4-6
+  conversion:
+    model: claude-haiku-4-5

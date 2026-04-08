@@ -199,6 +199,12 @@ These are NEW and need to be built:
 - [x] src/report.py — ReportGenerator (YAML output per ARCHITECTURE.md 3.7)
 - [x] src/orchestrator.py — wired ReportGenerator replacing placeholder
 
+### Phase 8a — Unified dependencies, CLI, and example config
+- [x] pyproject.toml — single unified dependencies replacing 3x legacy files
+- [x] src/cli.py — argparse CLI with run/validate-model/convert commands
+- [x] config/llm_config.yaml — example LLM config with agent_overrides
+- [x] tests/test_cli.py — 16 tests covering arg parsing, paper sources, all commands
+
 ---
 
 ## Key contacts / references

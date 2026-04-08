@@ -1,0 +1,169 @@
+"""CLI entry point for the chem-agent command."""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import sys
+from pathlib import Path
+
+from src.schemas.experimental import PaperSource, RunConfig
+
+
+def parse_paper_source(raw: str) -> PaperSource:
+    """Parse a --paper argument into a PaperSource.
+
+    Accepted formats:
+        doi:10.1016/xxx        -> PaperSource(mode="doi", value="10.1016/xxx")
+        file:path/to.pdf       -> PaperSource(mode="upload", value="path/to.pdf")
+        search:query string    -> PaperSource(mode="search", value="query string")
+    """
+    prefixes = {"doi:": "doi", "file:": "upload", "search:": "search"}
+    for prefix, mode in prefixes.items():
+        if raw.startswith(prefix):
+            return PaperSource(mode=mode, value=raw[len(prefix):])
+    raise argparse.ArgumentTypeError(
+        f"Invalid paper source: {raw!r}. "
+        "Use doi:<DOI>, file:<path>, or search:<query>."
+    )
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build the top-level argument parser."""
+    parser = argparse.ArgumentParser(
+        prog="chem-agent",
+        description="Multi-agent framework for evaluating and improving chemical kinetic models.",
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    # ── run ──────────────────────────────────────────
+    run_p = sub.add_parser("run", help="Run the full evaluation pipeline")
+    run_p.add_argument(
+        "--model", required=True, type=Path,
+        help="Path to Cantera/Chemkin mechanism file",
+    )
+    run_p.add_argument(
+        "--experiment", required=True, type=Path,
+        help="Path to experimental data YAML file",
+    )
+    run_p.add_argument(
+        "--paper", required=True, type=str,
+        help="Paper source: doi:<DOI>, file:<path>, or search:<query>",
+    )
+    run_p.add_argument("--path1", action="store_true", help="Run Path 1 only")
+    run_p.add_argument("--path2", action="store_true", help="Run Path 2 only")
+    run_p.add_argument(
+        "--output", type=Path, default=Path("data/reports"),
+        help="Output directory (default: data/reports)",
+    )
+    run_p.add_argument(
+        "--llm-config", type=Path, default=Path("config/llm_config.yaml"),
+        help="LLM configuration file (default: config/llm_config.yaml)",
+    )
+
+    # ── validate-model ──────────────────────────────
+    val_p = sub.add_parser("validate-model", help="Quick model sanity check")
+    val_p.add_argument(
+        "--model", required=True, type=Path,
+        help="Path to Cantera/Chemkin mechanism file",
+    )
+
+    # ── convert ─────────────────────────────────────
+    conv_p = sub.add_parser("convert", help="Convert Chemkin mechanism to Cantera YAML")
+    conv_p.add_argument(
+        "--input", required=True, type=Path,
+        help="Path to Chemkin mechanism file (.inp)",
+    )
+    conv_p.add_argument(
+        "--output", required=True, type=Path,
+        help="Output directory for converted YAML",
+    )
+    conv_p.add_argument(
+        "--llm-config", type=Path, default=Path("config/llm_config.yaml"),
+        help="LLM configuration file (default: config/llm_config.yaml)",
+    )
+
+    return parser
+
+
+def _resolve_paths(args: argparse.Namespace) -> None:
+    """Resolve paths on the namespace so they are absolute."""
+    for attr in ("model", "experiment", "output", "llm_config", "input"):
+        val = getattr(args, attr, None)
+        if isinstance(val, Path):
+            setattr(args, attr, val.resolve())
+
+
+def cmd_run(args: argparse.Namespace) -> None:
+    """Execute the full orchestrator pipeline."""
+    from src.orchestrator import Orchestrator
+
+    paper = parse_paper_source(args.paper)
+
+    # If neither --path1 nor --path2 is given, run both
+    run_path1 = True
+    run_path2 = True
+    if args.path1 or args.path2:
+        run_path1 = args.path1
+        run_path2 = args.path2
+
+    config = RunConfig(
+        original_model=args.model,
+        experimental_data=args.experiment,
+        paper_source=paper,
+        run_path1=run_path1,
+        run_path2=run_path2,
+        output_dir=args.output,
+        llm_config=args.llm_config,
+    )
+    orchestrator = Orchestrator(config)
+    report_path = asyncio.run(orchestrator.run())
+    print(f"Report written to {report_path}")
+
+
+def cmd_validate_model(args: argparse.Namespace) -> None:
+    """Run ModelIsolationValidator.reaction_ids() and print the count."""
+    from src.agents.validators import ModelIsolationValidator
+
+    validator = ModelIsolationValidator()
+    ids = validator.reaction_ids(args.model)
+    print(f"Model: {args.model}")
+    print(f"Reactions: {len(ids)}")
+
+
+def cmd_convert(args: argparse.Namespace) -> None:
+    """Run ChemkinConverter standalone."""
+    from src.agents.llm_client import LLMClient
+    from src.agents.conversion import ChemkinConverter
+
+    client = LLMClient(config_path=args.llm_config)
+    converter = ChemkinConverter(llm_client=client)
+    result = asyncio.run(converter.convert(args.input, args.output))
+    if result.success:
+        print(f"Converted: {result.output_path}")
+    else:
+        print(f"Conversion failed: {'; '.join(result.errors)}", file=sys.stderr)
+        sys.exit(1)
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Entry point for chem-agent command."""
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.command is None:
+        parser.print_help()
+        sys.exit(0)
+
+    _resolve_paths(args)
+
+    commands = {
+        "run": cmd_run,
+        "validate-model": cmd_validate_model,
+        "convert": cmd_convert,
+    }
+    commands[args.command](args)
+
+
+if __name__ == "__main__":
+    main()

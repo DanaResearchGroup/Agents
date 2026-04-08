@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chem-agent"
+version = "0.1.0"
+description = "Multi-agent framework for evaluating and improving chemical kinetic models"
+requires-python = ">=3.11"
+dependencies = [
+    # Simulation
+    "cantera>=3.0",
+    "numpy>=1.24",
+
+    # LLM
+    "litellm>=1.0",
+
+    # Schemas & config
+    "pydantic>=2.0",
+    "PyYAML>=6.0",
+
+    # PDF parsing
+    "PyMuPDF>=1.24.0",
+
+    # Paper retrieval
+    "requests>=2.31",
+    "duckduckgo-search>=5.0",
+
+    # Templating (reactor code generation)
+    "Jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-randomly",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+chem-agent = "src.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+select = ["B", "D3", "E", "F"]
+ignore = ["E501"]

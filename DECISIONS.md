@@ -281,3 +281,17 @@ Both outputs are merged before passing to Path 1/2 pipelines.
 
 **Revisit in:** Phase 8b.
 
+---
+
+## 2026-04-08 — CLI uses lazy imports per command
+
+**Decision:** src/cli.py imports heavy dependencies (Orchestrator, 
+LLMClient, Cantera, LiteLLM) inside command functions, not at module 
+top level.
+
+**Reason:** chem-agent --help and lightweight commands load instantly 
+without pulling in the full dependency stack.
+
+**Implications:** Test patches must target source modules directly 
+(e.g. src.orchestrator.Orchestrator) not the cli module.
+
