@@ -495,7 +495,10 @@ def _pipeline_patches(plans: list[SimulationPlan]):
         ),
         "pipeline": patch(
             "src.pipelines.path1.PaperExtractionPipeline",
-            return_value=MagicMock(extract=MagicMock(return_value=plans)),
+            return_value=MagicMock(
+                extract=MagicMock(return_value=plans),
+                last_evidence=[],
+            ),
         ),
     }
 
@@ -600,3 +603,61 @@ def test_deduplication_removes_identical_conditions():
     assert len(result) == 2
     assert result[0].T == 1200.0
     assert result[1].T == 1400.0
+
+
+# ── Test: LLM fallback receives evidence from deterministic pipeline ─────────
+
+
+@pytest.mark.asyncio
+async def test_llm_fallback_passes_evidence(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+):
+    """When deterministic pipeline returns [], evidence snippets are forwarded to LLM agent."""
+    from src.schemas.experimental import EvidenceSnippet
+
+    fake_evidence = [
+        EvidenceSnippet(
+            kind="temperature",
+            value_text="1200 K",
+            page_num=1,
+            source_text="Experiments at 1200 K",
+            confidence=0.9,
+        ),
+    ]
+
+    pp = _pipeline_patches([])  # empty plans → triggers LLM fallback
+    # Override mock pipeline to carry evidence
+    pipeline_mock = MagicMock(
+        extract=MagicMock(return_value=[]),
+        last_evidence=fake_evidence,
+    )
+    pp["pipeline"] = patch(
+        "src.pipelines.path1.PaperExtractionPipeline",
+        return_value=pipeline_mock,
+    )
+
+    llm_extract_mock = AsyncMock(return_value=TWO_CONDITIONS)
+    llm_agent_instance = MagicMock(extract=llm_extract_mock)
+    llm_agent_cls = MagicMock(return_value=llm_agent_instance)
+
+    with (
+        pp["converter_cls"],
+        pp["validator_cls"],
+        pp["parse_pdf"],
+        pp["pipeline"],
+        patch("src.pipelines.path1.ConditionExtractionAgent", llm_agent_cls),
+        patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        await run_path1(paper, original_model, experimental_data, llm_client)
+
+    # Verify evidence was passed (not None)
+    llm_extract_mock.assert_awaited_once()
+    call_kwargs = llm_extract_mock.call_args
+    assert call_kwargs[1].get("evidence") is not None
+    assert len(call_kwargs[1]["evidence"]) == 1
+    assert call_kwargs[1]["evidence"][0].kind == "temperature"

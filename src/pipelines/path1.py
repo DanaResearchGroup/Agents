@@ -281,7 +281,8 @@ async def run_path1(
             "falling back to LLM extraction"
         )
         agent = ConditionExtractionAgent(llm_client)
-        conditions = await agent.extract(document)
+        evidence = pipeline.last_evidence or None
+        conditions = await agent.extract(document, evidence=evidence)
 
     # Deduplicate by (reactor_type, T, P, observable_type)
     conditions = _deduplicate_conditions(conditions)

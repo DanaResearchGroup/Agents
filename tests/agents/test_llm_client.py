@@ -183,3 +183,78 @@ class TestComplete:
         call_kwargs = mock_llm.call_args.kwargs
         assert call_kwargs["api_key"] == "test-key"
         assert call_kwargs["api_base"] == "http://localhost:11434"
+
+
+# ── Ollama structured-output fallback tests ──────────────────────────────
+
+
+class _OllamaResult(BaseModel):
+    name: str
+    temperature: float
+    active: bool
+    count: int
+    tags: list
+
+
+class TestOllamaFallback:
+    """Verify that the Ollama provider injects schema + example into the prompt."""
+
+    @pytest.mark.asyncio
+    async def test_ollama_fallback_prompt_contains_schema_and_example(self):
+        cfg = LLMConfig(provider="ollama", model="llama3", base_url="http://localhost:11434")
+        client = LLMClient(config=cfg)
+        payload = json.dumps({"name": "H2", "temperature": 1200.0, "active": True, "count": 1, "tags": []})
+        mock_resp = _mock_response(payload)
+
+        with patch("src.agents.llm_client.litellm.acompletion", new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = mock_resp
+            result = await client.complete("Extract data", response_model=_OllamaResult)
+
+        assert isinstance(result, _OllamaResult)
+        call_kwargs = mock_llm.call_args.kwargs
+        system_msg = call_kwargs["messages"][0]["content"]
+        # Schema and example must both appear
+        assert "Required schema:" in system_msg
+        assert "Example of a valid response" in system_msg
+        assert "Your response must include ALL fields" in system_msg
+        # response_format must NOT be set for ollama
+        assert "response_format" not in call_kwargs
+
+    @pytest.mark.asyncio
+    async def test_ollama_example_includes_all_fields(self):
+        example = LLMClient._build_example(_OllamaResult)
+        assert set(example.keys()) == {"name", "temperature", "active", "count", "tags"}
+        assert isinstance(example["name"], str)
+        assert isinstance(example["temperature"], float)
+        assert isinstance(example["active"], bool)
+        assert isinstance(example["count"], int)
+        assert isinstance(example["tags"], list)
+
+    @pytest.mark.asyncio
+    async def test_ollama_retries_on_parse_failure(self):
+        cfg = LLMConfig(provider="ollama", model="llama3", base_url="http://localhost:11434")
+        client = LLMClient(config=cfg)
+        bad_resp = _mock_response("not json at all")
+        good_resp = _mock_response(json.dumps({"name": "O2", "temperature": 300.0, "active": False, "count": 0, "tags": []}))
+
+        with patch("src.agents.llm_client.litellm.acompletion", new_callable=AsyncMock) as mock_llm:
+            mock_llm.side_effect = [bad_resp, good_resp]
+            result = await client.complete("Extract", response_model=_OllamaResult)
+
+        assert isinstance(result, _OllamaResult)
+        assert result.name == "O2"
+        assert mock_llm.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_non_ollama_still_uses_response_format(self):
+        """Ensure the standard path is unchanged for non-Ollama providers."""
+        client = LLMClient(config=LLMConfig(provider="anthropic"))
+        payload = json.dumps({"name": "NH3", "temperature": 400.0, "active": True, "count": 2, "tags": []})
+        mock_resp = _mock_response(payload)
+
+        with patch("src.agents.llm_client.litellm.acompletion", new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = mock_resp
+            await client.complete("Extract", response_model=_OllamaResult)
+
+        call_kwargs = mock_llm.call_args.kwargs
+        assert call_kwargs["response_format"] == {"type": "json_object"}

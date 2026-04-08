@@ -7,6 +7,7 @@ directly. All LLM calls are routed through LLMClient.complete().
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,8 @@ import yaml
 from pydantic import BaseModel, Field
 
 import litellm
+
+log = logging.getLogger(__name__)
 
 
 class LLMConfig(BaseModel):
@@ -45,6 +48,27 @@ class LLMClient:
             )
         return self.config.model
 
+    @staticmethod
+    def _build_example(model: type[BaseModel]) -> dict[str, Any]:
+        """Build a concrete example dict covering every field of *model*."""
+        _DEFAULTS: dict[type, Any] = {
+            float: 0.5,
+            str: "example",
+            bool: True,
+            int: 0,
+            list: [],
+        }
+        example: dict[str, Any] = {}
+        for name, field_info in model.model_fields.items():
+            annotation = field_info.annotation
+            # Unwrap Optional (Union[X, None]) to the inner type
+            origin = getattr(annotation, "__origin__", None)
+            if origin is type(int | str):  # types.UnionType (3.10+)
+                args = [a for a in annotation.__args__ if a is not type(None)]
+                annotation = args[0] if args else annotation
+            example[name] = _DEFAULTS.get(annotation, "example")
+        return example
+
     async def complete(
         self,
         prompt: str,
@@ -68,8 +92,31 @@ class LLMClient:
             response_model was provided.
         """
         model = self._resolve_model(agent_name)
+        is_ollama = self.config.provider == "ollama"
 
         messages: list[dict[str, Any]] = []
+
+        # ── Ollama structured-output fallback ────────────────────────────
+        if response_model is not None and is_ollama:
+            json_schema = json.dumps(
+                response_model.model_json_schema(), indent=2,
+            )
+            example_json = json.dumps(
+                self._build_example(response_model), indent=2,
+            )
+            schema_prompt = (
+                "You must respond with valid JSON only. No explanation, no "
+                "markdown, no code blocks. Raw JSON only.\n\n"
+                f"Required schema:\n{json_schema}\n\n"
+                "Example of a valid response (with placeholder values):\n"
+                f"{example_json}\n\n"
+                "Your response must include ALL fields shown in the example."
+            )
+            if system:
+                system = f"{system}\n\n{schema_prompt}"
+            else:
+                system = schema_prompt
+
         if system:
             messages.append({"role": "system", "content": system})
 
@@ -93,13 +140,28 @@ class LLMClient:
         if self.config.base_url:
             kwargs["api_base"] = self.config.base_url
 
-        if response_model is not None:
+        if response_model is not None and not is_ollama:
             kwargs["response_format"] = {"type": "json_object"}
 
-        response = await litellm.acompletion(**kwargs)
-        text: str = response.choices[0].message.content
+        # ── Call LLM (with retry for Ollama structured output) ───────────
+        max_attempts = 2 if (response_model is not None and is_ollama) else 1
+        last_err: Exception | None = None
 
-        if response_model is not None:
-            return response_model.model_validate_json(text)
+        for attempt in range(1, max_attempts + 1):
+            response = await litellm.acompletion(**kwargs)
+            text: str = response.choices[0].message.content
 
-        return text
+            if response_model is None:
+                return text
+
+            log.debug("LLM raw response (attempt %d): %s", attempt, text)
+
+            try:
+                return response_model.model_validate_json(text)
+            except Exception as exc:
+                last_err = exc
+                if attempt < max_attempts:
+                    log.debug("Parse failed, retrying: %s", exc)
+                    continue
+
+        raise last_err  # type: ignore[misc]

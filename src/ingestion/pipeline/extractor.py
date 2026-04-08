@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 
-from src.schemas.experimental import PaperDocument, SimulationPlan
+from src.schemas.experimental import EvidenceSnippet, PaperDocument, SimulationPlan
 
 from src.ingestion.pipeline.evidence_extractor import extract_evidence
 from src.ingestion.pipeline.builder.candidate_builder import build_experiment_candidates
@@ -32,6 +32,9 @@ logger = logging.getLogger(__name__)
 class PaperExtractionPipeline:
     """Runs the full deterministic pipeline on a PaperDocument."""
 
+    def __init__(self) -> None:
+        self.last_evidence: list[EvidenceSnippet] = []
+
     def extract(self, document: PaperDocument) -> list[SimulationPlan]:
         """Run pipeline and return executable plans only.
 
@@ -46,6 +49,7 @@ class PaperExtractionPipeline:
     def _run(self, document: PaperDocument) -> list[SimulationPlan]:
         # Stage 1: evidence extraction
         evidence = extract_evidence(document)
+        self.last_evidence = evidence
         logger.info("Evidence snippets: %d", len(evidence))
         if not evidence:
             return []

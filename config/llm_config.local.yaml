@@ -1,0 +1,17 @@
+# LLM provider configuration for chem-agent
+#
+# provider options: anthropic, openai, ollama
+# For Ollama, set base_url to http://localhost:11434
+#
+provider: ollama
+model: ollama/qwen2.5:7b-instruct
+api_key: ""
+base_url: http://localhost:11434
+
+agent_overrides:
+  condition_extraction:
+    model: ollama/qwen2.5:7b-instruct
+  reaction_mining:
+    model: ollama/qwen2.5:7b-instruct
+  conversion:
+    model: ollama/qwen2.5:7b-instruct#
