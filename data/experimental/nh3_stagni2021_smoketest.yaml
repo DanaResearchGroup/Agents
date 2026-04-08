@@ -1,0 +1,63 @@
+name: NH3_Stagni2021_SmokeTest
+source: "10.1016/j.combustflame.2021.111530"
+
+# NOTE: measured_value fields are approximate placeholders for smoke test.
+# Real values must be read from paper figures before scientific use.
+# observable is NH3 mole fraction remaining after reaction.
+# General trend: higher T = more NH3 consumed = lower remaining fraction.
+
+conditions:
+  - reactor_type: shock_tube
+    temperature_K: 2217.0
+    pressure_atm: 1.22
+    mixture:
+      "NH3(1)": 0.0045
+      Ar: 0.9955
+    observable_type: species_profile
+    observable_label: "NH3(1)"
+    measured_value: 0.0001
+    error_threshold: 0.0002
+
+  - reactor_type: shock_tube
+    temperature_K: 2096.0
+    pressure_atm: 1.25
+    mixture:
+      "NH3(1)": 0.005
+      Ar: 0.995
+    observable_type: species_profile
+    observable_label: "NH3(1)"
+    measured_value: 0.0008
+    error_threshold: 0.0003
+
+  - reactor_type: shock_tube
+    temperature_K: 2174.0
+    pressure_atm: 1.25
+    mixture:
+      "NH3(1)": 0.005
+      Ar: 0.995
+    observable_type: species_profile
+    observable_label: "NH3(1)"
+    measured_value: 0.0003
+    error_threshold: 0.0002
+
+  - reactor_type: shock_tube
+    temperature_K: 1908.0
+    pressure_atm: 1.3
+    mixture:
+      "NH3(1)": 0.005
+      Ar: 0.995
+    observable_type: species_profile
+    observable_label: "NH3(1)"
+    measured_value: 0.002
+    error_threshold: 0.0005
+
+  - reactor_type: shock_tube
+    temperature_K: 1600.0
+    pressure_atm: 1.4
+    mixture:
+      "NH3(1)": 0.005
+      Ar: 0.995
+    observable_type: species_profile
+    observable_label: "NH3(1)"
+    measured_value: 0.004
+    error_threshold: 0.001

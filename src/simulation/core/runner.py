@@ -48,13 +48,33 @@ class SimulationResult(BaseModel):
     error: str | None = None
 
 
-def run_simulation(spec: SimulationSpec, mechanism_file: str) -> SimulationResult:
+def _apply_aliases(composition: dict[str, float], aliases: dict[str, str]) -> dict[str, float]:
+    """Remap species names in a composition dict using aliases.
+
+    Keys present in *aliases* are replaced; all others pass through unchanged.
+    """
+    return {aliases.get(sp, sp): frac for sp, frac in composition.items()}
+
+
+def run_simulation(
+    spec: SimulationSpec,
+    mechanism_file: str,
+    aliases: dict[str, str] | None = None,
+) -> SimulationResult:
     """Run a simulation for the given spec and mechanism.
 
     Dispatches to the appropriate reactor setup based on spec.reactor_type.
+    *aliases* maps plain species names to model names (e.g. {"NH3": "NH3(1)"}).
     """
     if not HAS_CANTERA:
         raise ImportError("Cantera is required. Install with: conda install -c cantera cantera")
+
+    # Apply species aliases before dispatch
+    if aliases:
+        updates: dict = {"composition": _apply_aliases(spec.composition, aliases)}
+        if spec.observable_species and spec.observable_species in aliases:
+            updates["observable_species"] = aliases[spec.observable_species]
+        spec = spec.model_copy(update=updates)
 
     errors = spec.validate()
     if errors:
@@ -98,7 +118,10 @@ def run_simulation(spec: SimulationSpec, mechanism_file: str) -> SimulationResul
 
 def _make_gas(spec: SimulationSpec, mechanism_file: str):
     """Create and configure a Cantera gas phase object."""
-    gas = ct.Solution(mechanism_file)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        gas = ct.Solution(mechanism_file)
     comp_str = ", ".join(f"{sp}: {frac}" for sp, frac in spec.composition.items())
     gas.TPX = spec.temperature, spec.pressure, comp_str
     return gas
@@ -133,7 +156,10 @@ def _run_shock_tube(spec: SimulationSpec, mechanism_file: str) -> SimulationResu
     Pressure and temperature evolve due to chemistry.
     """
     gas = _make_gas(spec, mechanism_file)
-    reactor = ct.IdealGasReactor(gas, clone=True)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        reactor = ct.IdealGasReactor(gas, clone=True)
     sim = ct.ReactorNet([reactor])
     sim.atol = _ATOL
     sim.rtol = _RTOL
@@ -166,7 +192,10 @@ def _run_rcm(spec: SimulationSpec, mechanism_file: str) -> SimulationResult:
     Initial T and P represent post-compression conditions.
     """
     gas = _make_gas(spec, mechanism_file)
-    reactor = ct.IdealGasReactor(gas, clone=True)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        reactor = ct.IdealGasReactor(gas, clone=True)
     sim = ct.ReactorNet([reactor])
     sim.atol = _ATOL
     sim.rtol = _RTOL
@@ -200,18 +229,25 @@ def _run_jsr(spec: SimulationSpec, mechanism_file: str) -> SimulationResult:
     gas = _make_gas(spec, mechanism_file)
 
     # Upstream reservoir with FRESH inlet composition (separate Solution)
-    inlet_gas = ct.Solution(mechanism_file)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        inlet_gas = ct.Solution(mechanism_file)
     comp_str = ", ".join(f"{sp}: {frac}" for sp, frac in spec.composition.items())
     inlet_gas.TPX = spec.temperature, spec.pressure, comp_str
     upstream = ct.Reservoir(inlet_gas, clone=True)
 
     # Downstream exhaust reservoir
-    exhaust_gas = ct.Solution(mechanism_file)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        exhaust_gas = ct.Solution(mechanism_file)
     exhaust_gas.TPX = spec.temperature, spec.pressure, comp_str
     downstream = ct.Reservoir(exhaust_gas, clone=True)
 
     # Reactor: isothermal (energy='off'), constant-P via outlet controller
-    reactor = ct.IdealGasReactor(gas, energy="off", clone=True)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        reactor = ct.IdealGasReactor(gas, energy="off", clone=True)
 
     tau = spec.residence_time or 1.0
     volume = reactor.volume
@@ -252,7 +288,10 @@ def _run_flow_reactor(spec: SimulationSpec, mechanism_file: str) -> SimulationRe
     the velocity profile.
     """
     gas = _make_gas(spec, mechanism_file)
-    reactor = ct.IdealGasConstPressureReactor(gas, energy="off", clone=True)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        reactor = ct.IdealGasConstPressureReactor(gas, energy="off", clone=True)
     sim = ct.ReactorNet([reactor])
     sim.atol = _ATOL
     sim.rtol = _RTOL
@@ -290,8 +329,11 @@ def _run_flame(spec: SimulationSpec, mechanism_file: str) -> SimulationResult:
     """
     gas = _make_gas(spec, mechanism_file)
 
+    import warnings
     width = 0.03  # m, domain width
-    flame = ct.FreeFlame(gas, width=width)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        flame = ct.FreeFlame(gas, width=width)
     flame.set_refine_criteria(ratio=3, slope=0.07, curve=0.14)
     flame.solve(loglevel=0, auto=True)
 

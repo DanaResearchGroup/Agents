@@ -80,9 +80,11 @@ class ConditionExtractionAgent:
             logger.warning("No conditions extracted from paper: %s", paper.title)
             return []
 
+        mode = "evidence-grounded" if evidence else "full text"
         logger.info(
-            "Extracted %d conditions (confidence=%.2f)",
+            "LLM condition extraction: %d conditions (%s, confidence=%.2f)",
             len(result.conditions),
+            mode,
             result.confidence,
         )
         return result.conditions

@@ -360,4 +360,80 @@ file-extension scanning.
 
 ---
 
+## 2026-04-09 — Cantera 3.2 custom element stripping required for RMG models
 
+**Decision:** RMG-generated Cantera YAML files must have unused custom 
+elements (T, D, Ci, Oi, X) stripped before use.
+
+**Reason:** Cantera 3.2 re-resolves the element list during 
+ct.IdealGasReactor(clone=True). Custom elements not in Cantera's 
+built-in table cause "element not found" errors at reactor creation,
+even if no species uses them. These are RMG/ck2yaml boilerplate.
+
+**Fix:** Remove unused custom elements from both the top-level 
+elements: section and the phase element list in the YAML.
+
+**Implication:** Add this as a post-processing step in 
+ChemkinConverter after T3 conversion — strip any elements not 
+actually present in any species composition. This should be 
+automatic, not manual.
+
+**Revisit:** Add to conversion.py as a cleanup pass after T3
+
+
+
+---
+
+## 2026-04-09 — Adopt LangGraph for agent orchestration
+
+**Decision:** Replace the current deterministic-first pipeline 
+with LangGraph ReAct agents. LangChain/LangGraph replaces the 
+custom ReAct loop implementation.
+
+**Reason:** The current system is a deterministic pipeline with 
+LLM fallback — not an agentic system. Rebuilding the agent layer 
+requires a ReAct loop, tool registration, and multi-agent state 
+management. LangGraph provides all three with better observability 
+(verbose logging, LangSmith) than a custom implementation.
+
+**Scope:**
+  Keep: src/simulation/, src/ingestion/, src/schemas/, validators, 
+         conversion, report
+  Replace: orchestrator, pipelines, condition_extraction
+  Add: paper_reader, simulation_planner, tools/
+
+**LLM provider:** LangGraph via langchain-community + LiteLLM.
+  Anthropic: langchain_anthropic
+  OpenAI: langchain_openai  
+  Ollama: langchain_ollama
+
+**Rejected:** Custom ReAct implementation — same work, worse 
+tooling, no observability.
+
+
+---
+
+## 2026-04-09 — PydanticAI for agent layer
+
+**Decision:** Use PydanticAI for individual agents. 
+No graph framework for orchestration — simple async 
+function calls between pipeline stages.
+
+**Reason:** 
+- Codebase is already Pydantic v2 — PydanticAI is a natural fit
+- Structured output story is best-in-class for typed results
+- Provider support covers Claude, DeepSeek, Ollama via 
+  OpenAI-compatible endpoint
+- Orchestration logic is simple sequential flow — 
+  a graph framework adds complexity with no benefit
+
+**Provider config:**
+  Claude:   AnthropicModel('claude-sonnet-4-6')
+  DeepSeek: OpenAIModel('deepseek-chat', base_url=..., api_key=...)
+  Ollama:   OpenAIModel('qwen2.5:7b', base_url='localhost:11434/v1')
+
+**Replaces:** LiteLLM LLMClient for agent calls
+  LiteLLM stays for non-agent LLM use (conversion error recovery)
+  
+**Keeps:** All of src/simulation/, src/ingestion/, src/schemas/
+---

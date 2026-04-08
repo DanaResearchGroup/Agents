@@ -201,26 +201,49 @@ def _extract_observable(result: SimulationResult) -> float | None:
 def _match_experimental(
     cond: SimConditions,
     dataset: ExperimentalDataset,
+    t_tol: float = 50.0,
+    p_tol: float = 0.1,
 ) -> ExperimentalCondition | None:
-    """Find an experimental condition matching by reactor, observable, T, P."""
+    """Find the closest experimental condition matching by reactor, observable, T, P.
+
+    Uses tolerance matching: T within ±t_tol K, P within ±p_tol atm.
+    Returns the closest match (smallest T+P distance) if multiple candidates exist.
+    """
+    best: ExperimentalCondition | None = None
+    best_dist = float("inf")
+
     for exp in dataset.conditions:
         if exp.reactor_type != cond.reactor_type:
             continue
         if exp.observable_type != cond.observable_type:
             continue
 
-        # Temperature match (allow list or scalar)
+        # Find closest T from scalar or list
         exp_temps = exp.temperature_K if isinstance(exp.temperature_K, list) else [exp.temperature_K]
-        if cond.T not in exp_temps:
+        t_diffs = [abs(cond.T - t) for t in exp_temps]
+        min_t_diff = min(t_diffs)
+        if min_t_diff > t_tol:
             continue
 
-        # Pressure match
+        # Find closest P from scalar or list
         exp_pressures = exp.pressure_atm if isinstance(exp.pressure_atm, list) else [exp.pressure_atm]
-        if cond.P not in exp_pressures:
+        p_diffs = [abs(cond.P - p) for p in exp_pressures]
+        min_p_diff = min(p_diffs)
+        if min_p_diff > p_tol:
             continue
 
-        return exp
-    return None
+        dist = min_t_diff + min_p_diff
+        if dist < best_dist:
+            best = exp
+            best_dist = dist
+
+    if best is not None and best_dist > 0:
+        logger.info(
+            "Tolerance match: sim T=%.1fK P=%.2fatm → exp T=%s P=%s (dist=%.2f)",
+            cond.T, cond.P, best.temperature_K, best.pressure_atm, best_dist,
+        )
+
+    return best
 
 
 async def run_path1(
@@ -228,6 +251,8 @@ async def run_path1(
     original_model: Path,
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
+    literature_model: Path | None = None,
+    species_aliases: dict[str, str] | None = None,
 ) -> Path1Results:
     """Execute the full Path 1 pipeline: literature model evaluation.
 
@@ -240,22 +265,24 @@ async def run_path1(
       6. Compute MAE against experimental data
       7. Build and return Path1Results
     """
-    # ── Step 1: Find mechanism ───────────────────────────────────────────
-    chemkin_path = _find_mechanism(paper)
-    logger.info("Found Chemkin mechanism: %s", chemkin_path)
+    # ── Step 1 & 2: Obtain literature mechanism ────────────────────────
+    if literature_model is not None:
+        logger.info("Using provided literature model, skipping SI discovery")
+        extracted_rates: dict[str, dict] = {}
+    else:
+        chemkin_path = _find_mechanism(paper)
+        logger.info("Found Chemkin mechanism: %s", chemkin_path)
 
-    # ── Step 2: Convert mechanism ────────────────────────────────────────
-    converter = ChemkinConverter(llm_client)
-    output_dir = chemkin_path.parent
-    conversion = await converter.convert(chemkin_path, output_dir)
-    if not conversion.success:
-        raise ValueError(f"Mechanism conversion failed: {conversion.errors}")
-    literature_model = conversion.output_path
-    logger.info("Converted mechanism: %s", literature_model)
+        converter = ChemkinConverter(llm_client)
+        output_dir = chemkin_path.parent
+        conversion = await converter.convert(chemkin_path, output_dir)
+        if not conversion.success:
+            raise ValueError(f"Mechanism conversion failed: {conversion.errors}")
+        literature_model = conversion.output_path
+        logger.info("Converted mechanism: %s", literature_model)
 
-    # ── Step 2b: Extract rate parameters from raw Chemkin ──────────────
-    extracted_rates = converter.extract_rates(chemkin_path)
-    logger.info("Extracted %d rate entries from Chemkin SI", len(extracted_rates))
+        extracted_rates = converter.extract_rates(chemkin_path)
+        logger.info("Extracted %d rate entries from Chemkin SI", len(extracted_rates))
 
     # ── Step 3: Validate isolation ───────────────────────────────────────
     validator = ModelIsolationValidator()
@@ -299,9 +326,9 @@ async def run_path1(
         try:
             spec = _to_spec(cond, i, "placeholder")
 
-            # Run both models
+            # Run both models (aliases only for original — literature uses paper names)
             lit_result = run_simulation(spec, str(literature_model))
-            orig_result = run_simulation(spec, str(original_model))
+            orig_result = run_simulation(spec, str(original_model), aliases=species_aliases)
 
             if not lit_result.success:
                 logger.warning("Literature sim failed for %s: %s", cond_id, lit_result.error)

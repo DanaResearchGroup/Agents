@@ -127,6 +127,7 @@ async def run_path2(
     llm_client: LLMClient,
     output_dir: Path,
     path1_results: Path1Results | None = None,
+    species_aliases: dict[str, str] | None = None,
 ) -> Path2Results:
     """Execute the full Path 2 pipeline: targeted model improvements.
 
@@ -195,7 +196,7 @@ async def run_path2(
     for i, cond in enumerate(conditions):
         try:
             spec = _to_spec(cond, i, str(original_model))
-            result = run_simulation(spec, str(original_model))
+            result = run_simulation(spec, str(original_model), aliases=species_aliases)
             if not result.success:
                 logger.warning("Baseline sim failed for cond_%d: %s", i, result.error)
                 continue
@@ -244,7 +245,7 @@ async def run_path2(
                 continue  # skip conditions that failed on baseline
             try:
                 spec = _to_spec(cond, i, str(branch.model_path), prefix=branch.branch_id)
-                result = run_simulation(spec, str(branch.model_path))
+                result = run_simulation(spec, str(branch.model_path), aliases=species_aliases)
                 if not result.success:
                     logger.warning("Branch %s cond_%d failed: %s", branch.branch_id, i, result.error)
                     continue

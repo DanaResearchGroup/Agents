@@ -60,6 +60,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--llm-config", type=Path, default=Path("config/llm_config.yaml"),
         help="LLM configuration file (default: config/llm_config.yaml)",
     )
+    run_p.add_argument(
+        "--literature-model", type=Path, default=None,
+        help="Path to literature mechanism YAML/Chemkin. "
+             "Bypasses SI download. Required for --path1 with file: ingestion.",
+    )
+    run_p.add_argument(
+        "--species-aliases", type=Path, default=None,
+        help="Path to YAML file mapping plain species names to model names "
+             "(e.g. {NH3: 'NH3(1)', O2: 'O2(6)'}).",
+    )
 
     # ── validate-model ──────────────────────────────
     val_p = sub.add_parser("validate-model", help="Quick model sanity check")
@@ -88,7 +98,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _resolve_paths(args: argparse.Namespace) -> None:
     """Resolve paths on the namespace so they are absolute."""
-    for attr in ("model", "experiment", "output", "llm_config", "input"):
+    for attr in ("model", "experiment", "output", "llm_config", "input",
+                 "literature_model", "species_aliases"):
         val = getattr(args, attr, None)
         if isinstance(val, Path):
             setattr(args, attr, val.resolve())
@@ -96,7 +107,15 @@ def _resolve_paths(args: argparse.Namespace) -> None:
 
 def cmd_run(args: argparse.Namespace) -> None:
     """Execute the full orchestrator pipeline."""
+    import logging
+    import yaml as _yaml
     from src.orchestrator import Orchestrator
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(message)s",
+        datefmt="%H:%M:%S",
+    )
 
     paper = parse_paper_source(args.paper)
 
@@ -107,6 +126,12 @@ def cmd_run(args: argparse.Namespace) -> None:
         run_path1 = args.path1
         run_path2 = args.path2
 
+    # Load species aliases from YAML if provided
+    # BaseLoader keeps all keys as strings (safe_load would parse NO/YES as booleans)
+    aliases: dict[str, str] = {}
+    if args.species_aliases is not None:
+        aliases = _yaml.load(args.species_aliases.read_text(), Loader=_yaml.BaseLoader) or {}
+
     config = RunConfig(
         original_model=args.model,
         experimental_data=args.experiment,
@@ -115,6 +140,8 @@ def cmd_run(args: argparse.Namespace) -> None:
         run_path2=run_path2,
         output_dir=args.output,
         llm_config=args.llm_config,
+        literature_model=args.literature_model,
+        species_aliases=aliases,
     )
     orchestrator = Orchestrator(config)
     report_path = asyncio.run(orchestrator.run())

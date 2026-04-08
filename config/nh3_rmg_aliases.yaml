@@ -1,0 +1,17 @@
+# Species name mapping for RMG-generated NH3 mechanism
+# Maps plain literature names to RMG indexed names
+NH3: "NH3(1)"
+N2: "N2(5)"
+O2: "O2(6)"
+H2: "H2(53)"
+H2O: "H2O(46)"
+OH: "OH(8)"
+H: "H(7)"
+O: "O(4)"
+NO: "NO(3)"
+Ar: "Ar"
+N: "N(2)"
+NH: "NH(17)"
+NH2: "NH2(45)"
+HO2: "HO2(50)"
+H2O2: "H2O2(90)"

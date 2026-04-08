@@ -41,7 +41,13 @@ class PaperExtractionPipeline:
         Never raises — returns empty list on any failure.
         """
         try:
-            return self._run(document)
+            plans = self._run(document)
+            n_evidence = len(self.last_evidence) if self.last_evidence else 0
+            logger.info(
+                "Deterministic pipeline: %d evidence snippets, %d executable plans",
+                n_evidence, len(plans),
+            )
+            return plans
         except Exception:
             logger.exception("Deterministic pipeline failed")
             return []

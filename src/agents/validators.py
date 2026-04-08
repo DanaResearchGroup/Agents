@@ -53,7 +53,10 @@ def _load_reactions(model_path: Path) -> list[str]:
     if _ct is None:
         raise ImportError("Cantera is required for model validation")
     try:
-        sol = _ct.Solution(str(model_path))
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            sol = _ct.Solution(str(model_path))
     except Exception as exc:
         raise ValueError(f"Failed to load mechanism: {model_path}") from exc
     return [r.equation for r in sol.reactions()]
@@ -77,12 +80,24 @@ class ModelIsolationValidator:
         Raises ModelIsolationViolation if any overlap is found.
         Raises ValueError if either file cannot be loaded.
         """
+        import logging
+        _log = logging.getLogger(__name__)
+
         lit_ids = self.reaction_ids(literature_model)
         orig_ids = self.reaction_ids(original_model)
 
         overlap = lit_ids & orig_ids
         if overlap:
+            _log.error(
+                "Isolation FAILED: %d shared reactions between literature (%d) and original (%d)",
+                len(overlap), len(lit_ids), len(orig_ids),
+            )
             raise ModelIsolationViolation(overlap)
+
+        _log.info(
+            "Isolation check: %d reactions in literature, %d in original, 0 shared — PASSED",
+            len(lit_ids), len(orig_ids),
+        )
 
     def validate_path2_branch(
         self,

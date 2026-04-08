@@ -144,24 +144,47 @@ class LLMClient:
             kwargs["response_format"] = {"type": "json_object"}
 
         # ── Call LLM (with retry for Ollama structured output) ───────────
+        label = agent_name or "default"
+        log.info(
+            "LLM call | agent=%s | model=%s | structured=%s",
+            label, model, response_model is not None,
+        )
+
         max_attempts = 2 if (response_model is not None and is_ollama) else 1
         last_err: Exception | None = None
 
         for attempt in range(1, max_attempts + 1):
-            response = await litellm.acompletion(**kwargs)
+            try:
+                response = await litellm.acompletion(**kwargs)
+            except Exception as exc:
+                log.error("LLM call failed | agent=%s | error=%s", label, exc)
+                raise
             text: str = response.choices[0].message.content
 
             if response_model is None:
+                log.info(
+                    "LLM response | agent=%s | tokens_approx=%d | type=text",
+                    label, len(text) // 4,
+                )
                 return text
 
             log.debug("LLM raw response (attempt %d): %s", attempt, text)
 
             try:
-                return response_model.model_validate_json(text)
+                parsed = response_model.model_validate_json(text)
+                log.info(
+                    "LLM response | agent=%s | tokens_approx=%d | type=structured",
+                    label, len(text) // 4,
+                )
+                return parsed
             except Exception as exc:
                 last_err = exc
                 if attempt < max_attempts:
-                    log.debug("Parse failed, retrying: %s", exc)
+                    log.warning(
+                        "LLM parse failed, retrying | agent=%s | attempt=%d | raw=%s",
+                        label, attempt, text[:100],
+                    )
                     continue
 
+        log.error("LLM call failed | agent=%s | error=%s", label, last_err)
         raise last_err  # type: ignore[misc]
