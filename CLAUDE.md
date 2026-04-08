@@ -180,14 +180,14 @@ These are NEW and need to be built:
 - [X] src/ingestion/ — move retrieval + parsing
 
 ### Phase 3 — LLM boundary fix (blocked on Phase 1)
-- [ ] src/agents/reaction_mining.py — replace DeepSeek/GLM with LiteLLM
+- [x] src/agents/reaction_mining.py — replace DeepSeek/GLM with LiteLLM
 
 ### Phase 4 — Orchestrator rework
-- [ ] src/orchestrator.py
+- [x] src/orchestrator.py
 
 ### Phase 5 — New components
-- [ ] src/agents/conversion.py
-- [ ] src/agents/validators.py
+- [x] src/agents/conversion.py
+- [x] src/agents/validators.py
 - [ ] src/pipelines/path1.py
 - [ ] src/pipelines/path2.py
 

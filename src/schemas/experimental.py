@@ -10,6 +10,7 @@ src/schemas/ should define Pydantic models.
 from __future__ import annotations
 
 from enum import Enum
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -427,3 +428,100 @@ class SimulationPlan(BaseModel):
         if self.template_family == "unsupported" and self.plan_status != "blocked":
             raise ValueError("unsupported template but plan not blocked")
         return self
+
+
+# ── Reaction mining models ───────────────────────────────────────────────
+
+
+class FigureClassification(BaseModel):
+    """Result of classifying a scientific figure by type."""
+    label: str
+    confidence: float = 0.0
+    reasoning: str = ""
+
+
+class FluxPathway(BaseModel):
+    """A single dominant pathway extracted from a flux diagram."""
+    rank: int
+    from_species: str = Field(alias="from")
+    to_species: str = Field(alias="to")
+    importance: str = "unknown"
+    evidence: str = ""
+
+    model_config = {"populate_by_name": True}
+
+
+class FluxConditions(BaseModel):
+    """Operating conditions shown in a flux diagram."""
+    temperature: str = "unknown"
+    pressure: str = "unknown"
+    equivalence_ratio: str = "unknown"
+    residence_time: str = "unknown"
+
+
+class FluxInterpretation(BaseModel):
+    """Structured interpretation of a flux / reaction-path diagram."""
+    system: str = "unknown"
+    conditions: FluxConditions = Field(default_factory=FluxConditions)
+    major_species: list[str] = Field(default_factory=list)
+    dominant_pathways: list[FluxPathway] = Field(default_factory=list)
+    quantitative_info: bool = False
+    usefulness: str = "unknown"
+    use_cases: list[str] = Field(default_factory=list)
+    uncertainty: str = ""
+    confidence: float = 0.0
+
+
+class SensitiveReaction(BaseModel):
+    """A single reaction from a sensitivity analysis ranking."""
+    rank: int
+    reaction: str
+    coefficient: float | str = "unknown"
+    impact: str = "unknown"
+
+
+class SensitivityConditions(BaseModel):
+    """Operating conditions for a sensitivity analysis."""
+    temperature: str = "unknown"
+    pressure: str = "unknown"
+    equivalence_ratio: str = "unknown"
+
+
+class SensitivityInterpretation(BaseModel):
+    """Structured interpretation of a sensitivity analysis figure."""
+    target_property: str = "unknown"
+    conditions: SensitivityConditions = Field(default_factory=SensitivityConditions)
+    top_reactions: list[SensitiveReaction] = Field(default_factory=list)
+    usefulness: str = "unknown"
+    uncertainty: str = ""
+    confidence: float = 0.0
+
+
+# ── Orchestrator models ────────────────────────────────────────────────────
+
+
+class PaperSource(BaseModel):
+    """How to locate the paper: by DOI, local file upload, or search query."""
+    mode: Literal["doi", "upload", "search"]
+    value: str = Field(..., description="DOI string, file path, or search query")
+
+
+class ConversionResult(BaseModel):
+    """Result of a Chemkin → Cantera YAML conversion attempt."""
+
+    success: bool
+    output_path: Path | None = None
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    attempts: int = 0
+
+
+class RunConfig(BaseModel):
+    """Top-level configuration for an orchestrator run."""
+    original_model: Path
+    experimental_data: Path = Field(description="Path to experimental YAML file")
+    paper_source: PaperSource
+    run_path1: bool = True
+    run_path2: bool = True
+    output_dir: Path = Path("data/reports")
+    llm_config: Path = Path("config/llm_config.yaml")

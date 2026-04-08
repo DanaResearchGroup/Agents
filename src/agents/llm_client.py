@@ -51,6 +51,7 @@ class LLMClient:
         system: str | None = None,
         response_model: type[BaseModel] | None = None,
         agent_name: str | None = None,
+        images: list[str] | None = None,
     ) -> str | BaseModel:
         """Send a completion request via LiteLLM.
 
@@ -59,6 +60,8 @@ class LLMClient:
             system: Optional system message.
             response_model: If provided, parse the response into this Pydantic model.
             agent_name: If provided, look up per-agent model override in config.
+            images: Optional list of base64-encoded images to include in the
+                user message (vision models only).
 
         Returns:
             Plain text string, or a validated Pydantic model instance if
@@ -69,7 +72,17 @@ class LLMClient:
         messages: list[dict[str, Any]] = []
         if system:
             messages.append({"role": "system", "content": system})
-        messages.append({"role": "user", "content": prompt})
+
+        if images:
+            content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
+            for img in images:
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{img}"},
+                })
+            messages.append({"role": "user", "content": content})
+        else:
+            messages.append({"role": "user", "content": prompt})
 
         kwargs: dict[str, Any] = {
             "model": model,
