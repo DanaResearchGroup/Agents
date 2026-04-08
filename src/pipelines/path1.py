@@ -167,6 +167,10 @@ async def run_path1(
     literature_model = conversion.output_path
     logger.info("Converted mechanism: %s", literature_model)
 
+    # ── Step 2b: Extract rate parameters from raw Chemkin ──────────────
+    extracted_rates = converter.extract_rates(chemkin_path)
+    logger.info("Extracted %d rate entries from Chemkin SI", len(extracted_rates))
+
     # ── Step 3: Validate isolation ───────────────────────────────────────
     validator = ModelIsolationValidator()
     validator.validate_path1(literature_model, original_model)
@@ -258,4 +262,5 @@ async def run_path1(
         mae_results=mae_results,
         literature_better_count=lit_better_count,
         overall_literature_better=lit_better_count > total / 2 if total > 0 else False,
+        extracted_rates=extracted_rates or None,
     )

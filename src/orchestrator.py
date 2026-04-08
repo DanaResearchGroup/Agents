@@ -12,6 +12,8 @@ from src.agents.llm_client import LLMClient
 from src.ingestion.pdf_parser import parse_pdf
 from src.ingestion.retrieval import OpenAlexClient
 from src.pipelines.path1 import run_path1
+from src.pipelines.path2 import run_path2
+from src.report import ReportGenerator
 from src.schemas.experimental import (
     ExperimentalDataset,
     PaperSource,
@@ -141,10 +143,16 @@ class Orchestrator:
             llm_client=self.llm_client,
         )
 
-    async def _run_path2(self, paper: PaperRecord) -> None:
-        """Path 2: Targeted Model Improvements (stub)."""
-        logger.info("Path 2 not yet implemented")
-        return None
+    async def _run_path2(self, paper: PaperRecord, path1_results=None) -> object:
+        """Path 2: Targeted Model Improvements."""
+        return await run_path2(
+            paper=paper,
+            original_model=self.config.original_model,
+            experimental_data=self.dataset,
+            llm_client=self.llm_client,
+            output_dir=self.config.output_dir,
+            path1_results=path1_results,
+        )
 
     # ── Report generation ───────────────────────────────────────────────
 
@@ -153,19 +161,15 @@ class Orchestrator:
         path1_results: object | None,
         path2_results: object | None,
     ) -> Path:
-        """Write a placeholder YAML report to output_dir."""
-        self.config.output_dir.mkdir(parents=True, exist_ok=True)
-        report_path = self.config.output_dir / "report.yaml"
-
-        report = {
-            "original_model": str(self.config.original_model),
-            "experimental_data": str(self.config.experimental_data),
-            "path1": path1_results,
-            "path2": path2_results,
-        }
-        report_path.write_text(yaml.dump(report, default_flow_style=False))
-        logger.info("Report written to %s", report_path)
-        return report_path
+        """Write a structured YAML report to output_dir."""
+        generator = ReportGenerator()
+        return generator.generate(
+            original_model=self.config.original_model,
+            experimental_data=self.dataset,
+            output_dir=self.config.output_dir,
+            path1_results=path1_results,
+            path2_results=path2_results,
+        )
 
     # ── Main entry point ────────────────────────────────────────────────
 
@@ -180,6 +184,6 @@ class Orchestrator:
             path1_results = await self._run_path1(paper)
 
         if self.config.run_path2:
-            path2_results = await self._run_path2(paper)
+            path2_results = await self._run_path2(paper, path1_results)
 
         return self._generate_report(path1_results, path2_results)

@@ -136,14 +136,21 @@ def _patch_all():
         attempts=1,
     ))
 
+    converter_instance = MagicMock(
+        convert=AsyncMock(return_value=ConversionResult(
+            success=True,
+            output_path=Path("/tmp/mech.yaml"),
+            attempts=1,
+        )),
+        extract_rates=MagicMock(return_value={
+            "h + o2 <=> o + oh": {"A": 1.04e14, "n": 0.0, "Ea": 15310.0},
+        }),
+    )
+
     return {
         "converter_cls": patch(
             "src.pipelines.path1.ChemkinConverter",
-            return_value=MagicMock(convert=AsyncMock(return_value=ConversionResult(
-                success=True,
-                output_path=Path("/tmp/mech.yaml"),
-                attempts=1,
-            ))),
+            return_value=converter_instance,
         ),
         "validator_cls": patch(
             "src.pipelines.path1.ModelIsolationValidator",
@@ -206,6 +213,8 @@ async def test_happy_path_two_conditions(
     assert result.source_doi == "10.1234/test"
     assert result.literature_better_count == 2
     assert result.overall_literature_better is True
+    assert result.extracted_rates is not None
+    assert "h + o2 <=> o + oh" in result.extracted_rates
 
 
 # ── Test: no SI mechanism ────────────────────────────────────────────────────

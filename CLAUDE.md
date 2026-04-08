@@ -189,7 +189,15 @@ These are NEW and need to be built:
 - [x] src/agents/conversion.py
 - [x] src/agents/validators.py
 - [x] src/pipelines/path1.py
-- [ ] src/pipelines/path2.py
+- [x] src/pipelines/path2.py
+
+### Phase 7 — Report generator + Chemkin rate extraction
+- [x] src/agents/conversion.py — extract_rates() for Chemkin A/n/Ea parsing
+- [x] src/schemas/experimental.py — extracted_rates field on Path1Results
+- [x] src/pipelines/path1.py — wired extract_rates after conversion
+- [x] src/pipelines/path2.py — enriches candidates from extracted_rates
+- [x] src/report.py — ReportGenerator (YAML output per ARCHITECTURE.md 3.7)
+- [x] src/orchestrator.py — wired ReportGenerator replacing placeholder
 
 ---
 

@@ -548,3 +548,39 @@ class Path1Results(BaseModel):
     mae_results: list[MAEResult]
     literature_better_count: int
     overall_literature_better: bool
+    extracted_rates: dict[str, dict] | None = None
+
+
+# ── Path 2 pipeline models ─────────────────────────────────────────────────
+
+
+class CandidateReaction(BaseModel):
+    """A reaction candidate extracted from a paper for potential model improvement."""
+    reaction_string: str
+    rate_params: dict | None = None
+    source_section: str = ""
+    justification: str = ""
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
+class ModelBranch(BaseModel):
+    """A modified copy of the original model with added reactions."""
+    branch_id: str
+    reactions_added: list[CandidateReaction]
+    model_path: Path
+
+
+class BranchResult(BaseModel):
+    """Simulation result for a single model branch."""
+    branch_id: str
+    reactions_added: list[str]
+    mae: float
+    delta_mae: float
+    improved: bool
+
+
+class Path2Results(BaseModel):
+    """Aggregated results from a Path 2 (Targeted Model Improvements) run."""
+    baseline_mae: float
+    branches: list[BranchResult]
+    best_branch_id: str | None = None

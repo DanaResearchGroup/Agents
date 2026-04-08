@@ -271,7 +271,7 @@ async def test_run_both_paths(make_config, monkeypatch):
         calls.append("path1")
         return None
 
-    async def _track_path2(self, paper):
+    async def _track_path2(self, paper, path1_results=None):
         calls.append("path2")
         return None
 
@@ -300,7 +300,7 @@ async def test_run_path1_only(make_config, monkeypatch):
         calls.append("path1")
         return None
 
-    async def _track_path2(self, paper):
+    async def _track_path2(self, paper, path1_results=None):
         calls.append("path2")
         return None
 
@@ -328,7 +328,7 @@ async def test_run_path2_only(make_config, monkeypatch):
         calls.append("path1")
         return None
 
-    async def _track_path2(self, paper):
+    async def _track_path2(self, paper, path1_results=None):
         calls.append("path2")
         return None
 
@@ -363,6 +363,7 @@ async def test_report_written_to_output_dir(make_config, monkeypatch):
     assert report_path.parent == config.output_dir
 
     content = yaml.safe_load(report_path.read_text())
-    assert content["path1"] is None
-    assert content["path2"] is None
+    assert "path1" not in content
+    assert "path2" not in content
     assert "original_model" in content
+    assert "run_id" in content

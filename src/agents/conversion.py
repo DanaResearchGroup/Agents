@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from pathlib import Path
 
 from src.agents.llm_client import LLMClient
+from src.agents.validators import _normalize_equation
 from src.schemas.experimental import ConversionResult
 
 logger = logging.getLogger(__name__)
@@ -107,3 +109,52 @@ class ChemkinConverter:
             warnings=warnings,
             attempts=self.MAX_ATTEMPTS,
         )
+
+    # Trailing Chemkin annotations to strip before parsing rate params
+    _ANNOTATIONS_RE = re.compile(
+        r"\s+(?:DUPLICATE|DUP|LOW|TROE|REV|PLOG|HIGH|SRI|FORD|RORD)\b.*",
+        re.IGNORECASE,
+    )
+
+    # Chemkin rate line: reaction string then A, n, Ea (whitespace-separated)
+    # A can be scientific notation (1.04E+14) or plain float (104000.0)
+    _RATE_RE = re.compile(
+        r"^(?P<rxn>.+?)\s+"                          # reaction string
+        r"(?P<A>[0-9.]+(?:[eE][+-]?\d+)?)"           # pre-exponential A
+        r"\s+(?P<n>[-+]?[0-9.]+(?:[eE][+-]?\d+)?)"   # temperature exponent n
+        r"\s+(?P<Ea>[-+]?[0-9.]+(?:[eE][+-]?\d+)?)"  # activation energy Ea
+        r"\s*$"
+    )
+
+    def extract_rates(self, chemkin_path: Path) -> dict[str, dict]:
+        """Parse Chemkin file for Arrhenius rate parameters (A, n, Ea).
+
+        Returns a dict mapping normalised reaction string → {"A", "n", "Ea"}.
+        Skips comment lines (starting with !) and malformed lines.
+        Never raises — returns whatever was successfully parsed.
+        """
+        rates: dict[str, dict] = {}
+        try:
+            text = chemkin_path.read_text(errors="replace")
+        except OSError:
+            logger.warning("Could not read Chemkin file: %s", chemkin_path)
+            return rates
+
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("!"):
+                continue
+            # Strip trailing annotations (DUPLICATE, LOW, TROE, etc.)
+            stripped = self._ANNOTATIONS_RE.sub("", stripped)
+            m = self._RATE_RE.match(stripped)
+            if not m:
+                continue
+            rxn_raw = m.group("rxn").strip()
+            normalised = _normalize_equation(rxn_raw)
+            rates[normalised] = {
+                "A": float(m.group("A")),
+                "n": float(m.group("n")),
+                "Ea": float(m.group("Ea")),
+            }
+        logger.info("Extracted %d rate entries from %s", len(rates), chemkin_path.name)
+        return rates

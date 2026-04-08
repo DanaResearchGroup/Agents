@@ -47,10 +47,13 @@ def _normalize_equation(eq: str) -> str:
 
 def _load_reactions(model_path: Path) -> list[str]:
     """Load a Cantera YAML mechanism and return its raw equation strings."""
-    if ct is None:
+    # Resolve cantera at call time so test-injected sys.modules fakes work
+    import sys
+    _ct = sys.modules.get("cantera", ct)
+    if _ct is None:
         raise ImportError("Cantera is required for model validation")
     try:
-        sol = ct.Solution(str(model_path))
+        sol = _ct.Solution(str(model_path))
     except Exception as exc:
         raise ValueError(f"Failed to load mechanism: {model_path}") from exc
     return [r.equation for r in sol.reactions()]
