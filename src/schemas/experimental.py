@@ -561,6 +561,22 @@ class SensitivityInterpretation(BaseModel):
     confidence: float = 0.0
 
 
+# ── Paper reader models ─────────────────────────────────────────────────────
+
+
+class PaperSummary(BaseModel):
+    """Structured summary of a paper produced by PaperReaderAgent."""
+    reactor_types: list[str] = Field(default_factory=list)
+    species_studied: list[str] = Field(default_factory=list)
+    temperature_range: str = ""
+    pressure_range: str = ""
+    phi_range: str | None = None
+    key_tables: list[str] = Field(default_factory=list)
+    key_figures: list[str] = Field(default_factory=list)
+    experimental_setup: str = ""
+    observable_types: list[str] = Field(default_factory=list)
+
+
 # ── Orchestrator models ────────────────────────────────────────────────────
 
 
@@ -589,6 +605,8 @@ class RunConfig(BaseModel):
     run_path2: bool = True
     output_dir: Path = Path("data/reports")
     llm_config: Path = Path("config/llm_config.yaml")
+    literature_model: Path | None = None
+    species_aliases: dict[str, str] = Field(default_factory=dict)
 
 
 # ── Condition extraction models ──────────────────────────────────────────────

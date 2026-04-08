@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from src.agents.llm_client import LLMClient
+from src.agents.paper_reader import read_paper
 from src.ingestion.pdf_parser import parse_pdf
 from src.ingestion.retrieval import OpenAlexClient
 from src.pipelines.path1 import run_path1
@@ -16,7 +17,9 @@ from src.pipelines.path2 import run_path2
 from src.report import ReportGenerator
 from src.schemas.experimental import (
     ExperimentalDataset,
+    PaperDocument,
     PaperSource,
+    PaperSummary,
     RunConfig,
 )
 from src.schemas.ingestion import PaperRecord, SearchQuery
@@ -80,6 +83,10 @@ class Orchestrator:
         raw = yaml.safe_load(config.experimental_data.read_text())
         self.dataset = ExperimentalDataset.model_validate(raw)
 
+        # Populated during ingestion / paper reading.
+        self.paper_document: PaperDocument | None = None
+        self.paper_summary: PaperSummary | None = None
+
     # ── Paper ingestion ─────────────────────────────────────────────────
 
     async def ingest_paper(self, source: PaperSource) -> PaperRecord:
@@ -114,10 +121,12 @@ class Orchestrator:
             raise ValueError(f"PDF file not found: {file_path}")
 
         document = parse_pdf(str(path))
+        self.paper_document = document
         return PaperRecord(
             id=path.stem,
             title=document.title or path.name,
             provenance="local_upload",
+            pdf_path=str(path.resolve()),
         )
 
     async def _ingest_search(self, query_text: str) -> PaperRecord:
@@ -141,6 +150,8 @@ class Orchestrator:
             original_model=self.config.original_model,
             experimental_data=self.dataset,
             llm_client=self.llm_client,
+            literature_model=self.config.literature_model,
+            species_aliases=self.config.species_aliases or None,
         )
 
     async def _run_path2(self, paper: PaperRecord, path1_results=None) -> object:
@@ -152,6 +163,7 @@ class Orchestrator:
             llm_client=self.llm_client,
             output_dir=self.config.output_dir,
             path1_results=path1_results,
+            species_aliases=self.config.species_aliases or None,
         )
 
     # ── Report generation ───────────────────────────────────────────────
@@ -173,9 +185,23 @@ class Orchestrator:
 
     # ── Main entry point ────────────────────────────────────────────────
 
+    async def _read_paper(self, paper: PaperRecord) -> None:
+        """Run PaperReaderAgent if we have a parsed PDF document."""
+        if self.paper_document is None and paper.pdf_path:
+            pdf = Path(paper.pdf_path)
+            if pdf.exists():
+                self.paper_document = parse_pdf(str(pdf))
+
+        if self.paper_document is not None:
+            self.paper_summary = await read_paper(
+                paper=self.paper_document,
+                config=self.llm_client.config,
+            )
+
     async def run(self) -> Path:
         """Execute the full orchestrator pipeline and return the report path."""
         paper = await self.ingest_paper(self.config.paper_source)
+        await self._read_paper(paper)
 
         path1_results = None
         path2_results = None

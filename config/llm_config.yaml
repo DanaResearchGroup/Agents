@@ -1,7 +1,13 @@
 # LLM provider configuration for chem-agent
 #
-# provider options: anthropic, openai, ollama
+# provider options: anthropic, openai, ollama, deepseek, groq
 # For Ollama, set base_url to http://localhost:11434
+#
+# DeepSeek example:
+#   provider: deepseek
+#   model: deepseek-chat
+#   api_key: sk-...
+#   base_url: https://api.deepseek.com/v1
 provider: anthropic
 model: claude-sonnet-4-6
 
