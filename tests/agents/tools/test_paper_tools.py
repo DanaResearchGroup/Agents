@@ -228,6 +228,42 @@ def test_get_table_not_found(deps: PaperDeps):
     assert "not found" in result.lower()
 
 
+def test_get_table_falls_back_to_caption_and_page_text():
+    """When table isn't in doc.tables but IS in captions, return caption + page text."""
+    paper = PaperDocument(
+        pdf_path="/f.pdf",
+        pages=[
+            PageText(page_num=2, text=(
+                "Table 3 shows the rate constants used.\n"
+                "H + O2 = OH + O  1.2e14  0  16800\n"
+                "OH + H2 = H2O + H  1.0e8  1.6  3300"
+            )),
+        ],
+        captions=[
+            FigureCaption(
+                figure_id="Table 3",
+                label_type="Table",
+                page_num=2,
+                caption="Rate constants for key reactions.",
+            ),
+        ],
+        tables=[],  # no parsed tables — keyword filter excluded it
+    )
+    deps = PaperDeps(paper=paper)
+    result = get_table(deps, "Table 3")
+    assert "Rate constants" in result
+    assert "H + O2" in result
+    assert "Page" not in result  # raw text, not "Table not found"
+
+
+def test_get_table_prefers_parsed_over_caption(deps: PaperDeps):
+    """When table exists in both doc.tables and captions, use structured data."""
+    result = get_table(deps, "Table 1")
+    # Structured data has pipe-delimited columns
+    assert "T (K)" in result
+    assert "|" in result
+
+
 # ── list_figures ─────────────────────────────────────────────────────────────
 
 def test_list_figures(deps: PaperDeps):
@@ -252,11 +288,18 @@ def test_list_tables(deps: PaperDeps):
     assert "experimental conditions" in result.lower()
 
 
-def test_list_tables_falls_back_to_captions():
+def test_list_tables_shows_all_captions():
+    """list_tables always uses doc.captions, not the filtered doc.tables."""
     paper = PaperDocument(
         pdf_path="/f.pdf",
         pages=[],
         captions=[
+            FigureCaption(
+                figure_id="Table 1",
+                label_type="Table",
+                page_num=3,
+                caption="Experimental conditions.",
+            ),
             FigureCaption(
                 figure_id="Table 2",
                 label_type="Table",
@@ -264,10 +307,11 @@ def test_list_tables_falls_back_to_captions():
                 caption="Rate constants used.",
             ),
         ],
-        tables=[],
+        tables=[],  # keyword filter excluded everything
     )
     deps = PaperDeps(paper=paper)
     result = list_tables(deps)
+    assert "Table 1" in result
     assert "Table 2" in result
 
 

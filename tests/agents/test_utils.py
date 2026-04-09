@@ -1,6 +1,6 @@
 """Tests for src.agents.utils."""
 
-from src.agents.utils import strip_thinking
+from src.agents.utils import extract_json_object, strip_thinking
 
 
 def test_strips_think_block():
@@ -32,3 +32,28 @@ def test_returns_original_when_no_think_tags():
 def test_returns_original_when_cleaned_is_empty():
     text = "<think>only thinking, no actual content</think>"
     assert strip_thinking(text) == text
+
+
+# ── extract_json_object ──────────────────────────────────────────────────────
+
+
+def test_extract_json_object_clean():
+    text = '{"reactor_types": ["shock_tube"], "temperature_range": "1200 K"}'
+    assert extract_json_object(text) == text
+
+
+def test_extract_json_object_from_markdown():
+    text = '```json\n{"reactor_types": ["jsr"]}\n```'
+    assert extract_json_object(text) == '{"reactor_types": ["jsr"]}'
+
+
+def test_extract_json_object_from_preamble():
+    text = 'Here is the summary:\n{"reactor_types": ["pfr"], "species_studied": ["NH3"]}'
+    result = extract_json_object(text)
+    assert result.startswith("{")
+    assert '"pfr"' in result
+
+
+def test_extract_json_object_returns_empty_when_no_object():
+    text = "## Study Overview\nThis paper studies NH3 combustion."
+    assert extract_json_object(text) == "{}"

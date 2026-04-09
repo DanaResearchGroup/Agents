@@ -23,3 +23,23 @@ def strip_thinking(text: str) -> str:
         flags=re.DOTALL,
     ).strip()
     return cleaned if cleaned else text
+
+
+def extract_json_object(text: str) -> str:
+    """Extract a JSON object from text that may contain preamble or markdown.
+
+    Handles models that wrap valid JSON in explanatory text, markdown fences,
+    or thinking tokens.  Returns ``"{}"`` when no object is found.
+    """
+    text = text.strip()
+
+    # Strip markdown code fences if present.
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    text = text.strip()
+
+    if text.startswith("{"):
+        return text
+
+    match = re.search(r"\{[\s\S]*\}", text)
+    return match.group(0) if match else "{}"

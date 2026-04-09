@@ -162,10 +162,15 @@ def get_figure_caption(deps: PaperDeps, figure_id: str) -> str:
 def get_table(deps: PaperDeps, table_id: str) -> str:
     """Return a parsed table as formatted text.
 
-    Accepts 'Table 1' or '1'.
+    Accepts 'Table 1' or '1'.  If the table was structurally parsed
+    (i.e. it matched condition-keyword filtering), returns column/row
+    data.  Otherwise falls back to caption text + raw page text so
+    the agent always gets something useful.
     """
     try:
         num = _normalize_table_id(table_id)
+
+        # 1) Try structured parsed tables first.
         for tbl in deps.paper.tables:
             if _caption_num(tbl.table_id) == num:
                 header = " | ".join(c.header for c in tbl.columns)
@@ -174,6 +179,19 @@ def get_table(deps: PaperDeps, table_id: str) -> str:
                     cells = [v.raw_text for v in row.cells.values()]
                     rows_text.append(" | ".join(cells))
                 return _truncate(f"{tbl.table_id}: {tbl.caption}\n{header}\n" + "\n".join(rows_text), 1500, f"table:{table_id}")
+
+        # 2) Fall back to caption + raw page text.
+        for cap in deps.paper.captions:
+            if cap.label_type.lower() != "table":
+                continue
+            if _caption_num(cap.figure_id) == num:
+                parts = [f"{cap.figure_id} (p.{cap.page_num}): {cap.caption}"]
+                for page in deps.paper.pages:
+                    if page.page_num == cap.page_num:
+                        parts.append(page.text)
+                        break
+                return _truncate("\n".join(parts), 1500, f"table:{table_id}")
+
         return "Table not found."
     except Exception as e:
         return f"Tool error: {e}"
@@ -196,21 +214,21 @@ def list_figures(deps: PaperDeps) -> str:
 
 
 def list_tables(deps: PaperDeps) -> str:
-    """List all table IDs and captions."""
+    """List all table IDs and captions from the paper.
+
+    Always uses ``doc.captions`` (the complete set) so every table
+    the paper contains is visible to the agent.  ``get_table`` will
+    return structured data when available and raw page text otherwise.
+    """
     try:
-        if not deps.paper.tables:
-            # Fall back to table captions if tables weren't parsed.
-            tbl_caps = [
-                c for c in deps.paper.captions
-                if c.label_type.lower() == "table"
-            ]
-            if not tbl_caps:
-                return "No tables found."
-            return "\n".join(
-                f"{c.figure_id} (p.{c.page_num}): {c.caption[:100]}" for c in tbl_caps
-            )
+        tbl_caps = [
+            c for c in deps.paper.captions
+            if c.label_type.lower() == "table"
+        ]
+        if not tbl_caps:
+            return "No tables found."
         return "\n".join(
-            f"{t.table_id} (p.{t.page_num}): {t.caption[:100]}" for t in deps.paper.tables
+            f"{c.figure_id} (p.{c.page_num}): {c.caption[:100]}" for c in tbl_caps
         )
     except Exception as e:
         return f"Tool error: {e}"
