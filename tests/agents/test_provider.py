@@ -1,6 +1,6 @@
 """Tests for PydanticAI model factory."""
 
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 
@@ -20,7 +20,7 @@ def test_anthropic_config(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider.OpenAIChatModel")
 def test_openai_config(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(provider="openai", model="gpt-4o", api_key="sk-oai")
     result = make_model(cfg)
@@ -31,7 +31,7 @@ def test_openai_config(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider.OpenAIChatModel")
 def test_deepseek_config(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(provider="deepseek", model="deepseek-chat", api_key="sk-ds")
     result = make_model(cfg)
@@ -52,7 +52,7 @@ def test_ollama_config(mock_model_cls, mock_prov_cls):
     mock_prov_cls.assert_called_once_with(
         base_url="http://localhost:11434/v1", api_key="ollama"
     )
-    mock_model_cls.assert_called_once_with("llama3.1:8b", provider=mock_prov_cls.return_value)
+    mock_model_cls.assert_called_once_with("llama3.1:8b", provider=mock_prov_cls.return_value, profile=ANY)
     assert result is mock_model_cls.return_value
 
 
@@ -109,7 +109,7 @@ def test_agent_override_missing_uses_default(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider.OpenAIChatModel")
 def test_deepseek_with_explicit_base_url(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(
         provider="deepseek",
@@ -130,7 +130,7 @@ def test_ollama_strips_prefix(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(provider="ollama", model="ollama/llama3.1:8b")
     make_model(cfg)
 
-    mock_model_cls.assert_called_once_with("llama3.1:8b", provider=mock_prov_cls.return_value)
+    mock_model_cls.assert_called_once_with("llama3.1:8b", provider=mock_prov_cls.return_value, profile=ANY)
 
 
 @patch("src.agents.provider.OpenAIProvider")
@@ -171,7 +171,7 @@ def test_empty_api_key_treated_as_none(mock_model_cls, mock_prov_cls):
 
 
 def test_ollama_model_is_ollama_subclass():
-    """Ollama provider returns _OllamaModel, not plain OpenAIModel."""
+    """Ollama provider returns _OllamaModel, not plain OpenAIChatModel."""
     with (
         patch("src.agents.provider.OpenAIProvider"),
         patch("src.agents.provider._OllamaModel") as mock_cls,
@@ -181,27 +181,103 @@ def test_ollama_model_is_ollama_subclass():
         mock_cls.assert_called_once()
 
 
-@pytest.mark.asyncio
-async def test_ollama_model_removes_null_content():
-    """_OllamaModel removes content key when it is None."""
-    from unittest.mock import AsyncMock, MagicMock
+def test_ollama_profile_disables_strict_tool_definitions():
+    """Ollama profile sets openai_supports_strict_tool_definition=False."""
+    from pydantic_ai.models.openai import OpenAIModelProfile
 
-    model = MagicMock(spec=_OllamaModel)
-    # Simulate parent _map_messages returning messages with None content
-    parent_result = [
+    with patch("src.agents.provider.OpenAIProvider"):
+        cfg = LLMConfig(provider="ollama", model="qwen2.5:14b")
+        model = make_model(cfg)
+
+    profile = OpenAIModelProfile.from_profile(model.profile)
+    assert profile.openai_supports_strict_tool_definition is False
+
+
+def test_strip_null_content_removes_null():
+    """_strip_null_content removes content key when it is None."""
+    from src.agents.provider import _strip_null_content
+
+    messages = [
         {"role": "system", "content": "You are helpful."},
         {"role": "assistant", "content": None, "tool_calls": [{"id": "1", "function": {"name": "get_evidence"}}]},
         {"role": "tool", "content": "Page 1: T=1200K", "tool_call_id": "1"},
+        {"role": "assistant", "content": None},
     ]
-    # Call the real _map_messages with a mocked super()
-    with patch.object(
-        _OllamaModel.__mro__[1], "_map_messages",
-        new=AsyncMock(return_value=parent_result),
-    ):
-        result = await _OllamaModel._map_messages(model, messages=[], model_request_parameters=MagicMock())
+    result = _strip_null_content(messages)
 
-    # Null content key removed entirely
     assert result[0]["content"] == "You are helpful."
     assert "content" not in result[1]
     assert result[1]["tool_calls"] == [{"id": "1", "function": {"name": "get_evidence"}}]
     assert result[2]["content"] == "Page 1: T=1200K"
+    assert "content" not in result[3]
+
+
+def test_strip_null_content_preserves_non_null():
+    """_strip_null_content leaves messages with real content untouched."""
+    from src.agents.provider import _strip_null_content
+
+    messages = [
+        {"role": "system", "content": "System prompt."},
+        {"role": "assistant", "content": "I will help."},
+        {"role": "user", "content": "Thanks."},
+    ]
+    result = _strip_null_content(messages)
+
+    assert all("content" in msg for msg in result)
+    assert result[0]["content"] == "System prompt."
+    assert result[1]["content"] == "I will help."
+    assert result[2]["content"] == "Thanks."
+
+
+@pytest.mark.asyncio
+async def test_ollama_completions_create_strips_null_content():
+    """_completions_create sanitizes messages before the API call."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    from pydantic_ai.models.openai import ModelRequestParameters
+
+    captured_kwargs = {}
+
+    async def fake_create(**kwargs):
+        captured_kwargs.update(kwargs)
+        resp = MagicMock()
+        resp.model_dump.return_value = {
+            "id": "x", "object": "chat.completion", "created": 0,
+            "model": "test", "choices": [{
+                "index": 0, "message": {"role": "assistant", "content": "ok"},
+                "finish_reason": "stop",
+            }], "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        }
+        return resp
+
+    prov = MagicMock()
+    model = _OllamaModel.__new__(_OllamaModel)
+    model._model_name = "test"
+    model._provider = prov
+    model._profile = None
+    model.client = MagicMock()
+    model.client.chat.completions.create = AsyncMock(side_effect=fake_create)
+
+    params = ModelRequestParameters(
+        output_mode="text", output_object=None, allow_text_output=True,
+    )
+
+    # Simulate _map_messages returning messages with null content
+    mapped = [
+        {"role": "user", "content": "hello"},
+        {"role": "assistant", "content": None, "tool_calls": [{"id": "1"}]},
+        {"role": "tool", "content": "result", "tool_call_id": "1"},
+    ]
+    with patch.object(
+        _OllamaModel.__mro__[1], "_map_messages",
+        new=AsyncMock(return_value=mapped),
+    ):
+        await model._completions_create(
+            messages=[], stream=False,
+            model_settings={}, model_request_parameters=params,
+        )
+
+    sent_msgs = captured_kwargs["messages"]
+    assert sent_msgs[0]["content"] == "hello"
+    assert "content" not in sent_msgs[1]
+    assert sent_msgs[2]["content"] == "result"

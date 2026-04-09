@@ -70,6 +70,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to YAML file mapping plain species names to model names "
              "(e.g. {NH3: 'NH3(1)', O2: 'O2(6)'}).",
     )
+    run_p.add_argument(
+        "--literature-aliases", type=Path, default=None,
+        help="Path to YAML file mapping original model species to literature "
+             "model names (e.g. {'NH3(1)': 'NH3', 'O2(6)': 'O2'}).",
+    )
 
     # ── validate-model ──────────────────────────────
     val_p = sub.add_parser("validate-model", help="Quick model sanity check")
@@ -122,7 +127,7 @@ def build_parser() -> argparse.ArgumentParser:
 def _resolve_paths(args: argparse.Namespace) -> None:
     """Resolve paths on the namespace so they are absolute."""
     for attr in ("model", "experiment", "output", "llm_config", "input",
-                 "literature_model", "species_aliases"):
+                 "literature_model", "species_aliases", "literature_aliases"):
         val = getattr(args, attr, None)
         if isinstance(val, Path):
             setattr(args, attr, val.resolve())
@@ -155,6 +160,10 @@ def cmd_run(args: argparse.Namespace) -> None:
     if args.species_aliases is not None:
         aliases = _yaml.load(args.species_aliases.read_text(), Loader=_yaml.BaseLoader) or {}
 
+    lit_aliases: dict[str, str] = {}
+    if getattr(args, "literature_aliases", None) is not None:
+        lit_aliases = _yaml.load(args.literature_aliases.read_text(), Loader=_yaml.BaseLoader) or {}
+
     config = RunConfig(
         original_model=args.model,
         experimental_data=args.experiment,
@@ -165,6 +174,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         llm_config=args.llm_config,
         literature_model=args.literature_model,
         species_aliases=aliases,
+        literature_aliases=lit_aliases,
     )
     orchestrator = Orchestrator(config)
     report_path = asyncio.run(orchestrator.run())

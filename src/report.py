@@ -79,10 +79,8 @@ class ReportGenerator:
             if orig:
                 row["original_mae"] = _fmt_mae(orig.mae)
                 row["threshold"] = _fmt_mae(orig.threshold)
-            if lit:
-                row["literature_mae"] = _fmt_mae(lit.mae)
-            if lit and orig:
-                row["literature_better"] = lit.mae < orig.mae
+            row["literature_mae"] = _fmt_mae(lit.mae) if lit else "N/A"
+            row["literature_better"] = (lit.mae < orig.mae) if (lit and orig) else False
             result_rows.append(row)
 
         return {

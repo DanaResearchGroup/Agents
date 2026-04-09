@@ -360,14 +360,10 @@ async def test_partial_simulation_failure(
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
 ):
-    """One condition's simulation fails — other succeeds. Results are partial."""
+    """Literature fails for one condition — original still recorded."""
     patches = _patch_all()
 
-    sim_call = 0
-
     def mock_run_sim(spec, mechanism_file, **kwargs):
-        nonlocal sim_call
-        sim_call += 1
         # Fail the first condition's literature run
         if "cond_0" in spec.experiment_id and "mech.yaml" in mechanism_file:
             return _make_failed_result(spec.experiment_id, "diverged")
@@ -385,9 +381,76 @@ async def test_partial_simulation_failure(
 
         result = await run_path1(paper, original_model, experimental_data, llm_client)
 
-    # Only one condition should have results (cond_1)
-    assert result.conditions_tested == 1
-    assert len(result.mae_results) == 2  # lit + orig for one condition
+    # Both conditions tested (original succeeded for both)
+    assert result.conditions_tested == 2
+    # cond_0: only original MAE; cond_1: both MAEs
+    assert len(result.mae_results) == 3  # orig_0 + orig_1 + lit_1
+
+
+@pytest.mark.asyncio
+async def test_literature_fails_original_recorded(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+):
+    """Literature sim fails for ALL conditions — original MAE still recorded."""
+    patches = _patch_all()
+
+    def mock_run_sim(spec, mechanism_file, **kwargs):
+        if "mech.yaml" in mechanism_file:
+            return _make_failed_result(spec.experiment_id, "diverged")
+        return _make_sim_result(spec.experiment_id, 0.0009)
+
+    with (
+        patches["converter_cls"],
+        patches["validator_cls"],
+        patches["parse_pdf"],
+        patches["extract"],
+        patches["model_species"],
+        patch("src.pipelines.path1.run_simulation", side_effect=mock_run_sim),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        result = await run_path1(paper, original_model, experimental_data, llm_client)
+
+    assert result.conditions_tested == 2
+    # Only original MAE results, no literature
+    assert len(result.mae_results) == 2
+    assert all(r.model_name == "original" for r in result.mae_results)
+    # literature_better_count is 0 when no literature MAE
+    assert result.literature_better_count == 0
+
+
+@pytest.mark.asyncio
+async def test_original_fails_no_result(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+):
+    """Original sim fails — no result recorded (even if literature succeeds)."""
+    patches = _patch_all()
+
+    def mock_run_sim(spec, mechanism_file, **kwargs):
+        if "original" in mechanism_file:
+            return _make_failed_result(spec.experiment_id, "diverged")
+        return _make_sim_result(spec.experiment_id, 0.0009)
+
+    with (
+        patches["converter_cls"],
+        patches["validator_cls"],
+        patches["parse_pdf"],
+        patches["extract"],
+        patches["model_species"],
+        patch("src.pipelines.path1.run_simulation", side_effect=mock_run_sim),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        result = await run_path1(paper, original_model, experimental_data, llm_client)
+
+    assert result.conditions_tested == 0
+    assert len(result.mae_results) == 0
 
 
 # ── Test: overall_literature_better majority logic ───────────────────────────

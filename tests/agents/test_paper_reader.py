@@ -162,3 +162,20 @@ async def test_read_paper_logs_summary(
 
     assert "PaperReaderAgent" in caplog.text
     assert "shock tube" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_read_paper_prompt_under_100_words(
+    sample_paper: PaperDocument,
+    config: LLMConfig,
+    mock_summary: PaperSummary,
+):
+    """Initial prompt must not contain paper text (under 100 words)."""
+    mock_result = AsyncMock()
+    mock_result.output = mock_summary
+
+    with patch.object(paper_reader_agent, "run", return_value=mock_result) as mock_run:
+        await read_paper(paper=sample_paper, config=config)
+
+    prompt = mock_run.call_args.args[0]
+    assert len(prompt.split()) < 100, f"Prompt too long ({len(prompt.split())} words)"

@@ -2,43 +2,72 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+import logging
+from typing import Any
 
 from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.groq import GroqModel
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel, OpenAIModelProfile
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.groq import GroqProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from src.agents.llm_client import LLMConfig
 
+log = logging.getLogger(__name__)
 
-class _OllamaModel(OpenAIModel):
-    """OpenAI-compatible model that sanitizes null content for Ollama.
 
-    We hit Ollama's ``/v1/chat/completions`` endpoint (OpenAI-compatible
-    format), not the native ``/api/chat`` endpoint.  PydanticAI sets
-    ``content = None`` on assistant messages that only contain tool
-    calls (no text).  This is valid per the OpenAI spec, but Ollama's
-    /v1 compatibility layer rejects it with
-    ``invalid message content type: <nil>``.
+def _strip_null_content(messages: list[Any]) -> list[Any]:
+    """Remove ``content`` key from any message dict where it is ``None``.
 
-    Fix: remove the ``content`` key entirely from messages where it
-    is ``None``.  Ollama accepts the key being absent.
+    Ollama's /v1 compatibility layer rejects ``"content": null`` with
+    ``invalid message content type: <nil>``.  This is valid per the
+    OpenAI spec, but Ollama's Go JSON unmarshaller treats missing and
+    null differently: missing is fine, null triggers a type-switch
+    error on the nil interface value.
+    """
+    cleaned = []
+    for msg in messages:
+        if isinstance(msg, dict) and msg.get("content") is None:
+            msg = {k: v for k, v in msg.items() if k != "content"}
+        cleaned.append(msg)
+    return cleaned
+
+
+class _OllamaModel(OpenAIChatModel):
+    """OpenAI-compatible model with Ollama-specific fixes.
+
+    Overrides ``_completions_create`` to sanitize messages at the last
+    possible moment — after PydanticAI's ``_map_messages`` and right
+    before the OpenAI SDK serializes the HTTP request.
     """
 
-    async def _map_messages(
+    async def _completions_create(
         self,
-        messages: Sequence[ModelMessage],
-        model_request_parameters: object,
-    ) -> list[dict]:
-        mapped = await super()._map_messages(messages, model_request_parameters)  # type: ignore[arg-type]
-        for msg in mapped:
-            if "content" in msg and msg["content"] is None:
-                del msg["content"]
-        return mapped
+        messages: list[ModelMessage],
+        stream: bool,
+        model_settings: Any,
+        model_request_parameters: Any,
+    ) -> Any:
+        # Let the parent build the openai_messages list via _map_messages
+        # and assemble all other parameters, but intercept to sanitize.
+        # We do this by temporarily patching self.client to capture & fix
+        # the messages before they hit the wire.
+        original_create = self.client.chat.completions.create
+
+        async def patched_create(**kwargs: Any) -> Any:
+            if "messages" in kwargs:
+                kwargs["messages"] = _strip_null_content(kwargs["messages"])
+            return await original_create(**kwargs)
+
+        self.client.chat.completions.create = patched_create  # type: ignore[assignment]
+        try:
+            return await super()._completions_create(
+                messages, stream, model_settings, model_request_parameters
+            )
+        finally:
+            self.client.chat.completions.create = original_create  # type: ignore[assignment]
 
 # Providers that use the OpenAI-compatible API with a custom base_url.
 _OPENAI_COMPAT_DEFAULTS: dict[str, str] = {
@@ -50,15 +79,15 @@ _OPENAI_COMPAT_DEFAULTS: dict[str, str] = {
 def make_model(
     config: LLMConfig,
     agent_name: str | None = None,
-) -> AnthropicModel | OpenAIModel | GroqModel:
+) -> AnthropicModel | OpenAIChatModel | GroqModel:
     """Build a PydanticAI model from LLMConfig.
 
     Supports:
       provider: anthropic  → AnthropicModel
-      provider: openai     → OpenAIModel
+      provider: openai     → OpenAIChatModel
       provider: groq       → GroqModel
-      provider: deepseek   → OpenAIModel(base_url=https://api.deepseek.com/v1)
-      provider: ollama     → OpenAIModel(base_url=http://localhost:11434/v1)
+      provider: deepseek   → OpenAIChatModel(base_url=https://api.deepseek.com/v1)
+      provider: ollama     → OpenAIChatModel(base_url=http://localhost:11434/v1)
 
     Per-agent model override via agent_name:
       make_model(config, agent_name="condition_extraction")
@@ -90,8 +119,11 @@ def make_model(
         if base_url and not base_url.rstrip("/").endswith("/v1"):
             base_url = base_url.rstrip("/") + "/v1"
 
+        profile = OpenAIModelProfile(
+            openai_supports_strict_tool_definition=False,
+        )
         prov = OpenAIProvider(base_url=base_url, api_key=api_key)
-        return _OllamaModel(model_name, provider=prov)
+        return _OllamaModel(model_name, provider=prov, profile=profile)
 
     prov = OpenAIProvider(base_url=base_url, api_key=api_key)
-    return OpenAIModel(model_name, provider=prov)
+    return OpenAIChatModel(model_name, provider=prov)

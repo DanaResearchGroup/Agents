@@ -11,6 +11,7 @@ from src.agents.tools.condition_tools import (
     ConditionDeps,
     get_evidence,
     get_executable_plans,
+    get_page,
     get_paper_summary,
     validate_condition,
 )
@@ -394,3 +395,132 @@ def test_get_paper_summary_returns_nonempty_on_exception():
     assert isinstance(result, str)
     assert len(result) > 0
     assert "Tool error" in result
+
+
+# ── Truncation tests ──────────────────────────────────────────────────────
+
+
+def test_get_evidence_limits_to_5_snippets(deps: ConditionDeps):
+    """get_evidence returns at most 5 snippets."""
+    fake_evidence = [
+        EvidenceSnippet(
+            kind="temperature",
+            value_text=f"{1000 + i * 100} K",
+            page_num=i,
+            source_text=f"T={1000 + i * 100} K",
+            confidence=0.9 - i * 0.05,
+        )
+        for i in range(15)
+    ]
+
+    with patch(
+        "src.agents.tools.condition_tools.extract_evidence",
+        return_value=fake_evidence,
+    ):
+        result = get_evidence(deps, "temperature")
+
+    lines = [l for l in result.strip().split("\n") if l.startswith("Page")]
+    assert len(lines) == 5
+
+
+def test_get_executable_plans_limits_to_10(deps: ConditionDeps):
+    """get_executable_plans returns at most 10 plans."""
+    plans = [_make_plan() for _ in range(20)]
+
+    with patch(
+        "src.agents.tools.condition_tools.PaperExtractionPipeline",
+        return_value=MagicMock(extract=MagicMock(return_value=plans)),
+    ):
+        result = get_executable_plans(deps)
+
+    lines = [l for l in result.strip().split("\n") if l.startswith("Plan")]
+    assert len(lines) == 10
+
+
+def test_get_paper_summary_truncates_long_summary():
+    """get_paper_summary truncates output to 800 chars."""
+    summary = PaperSummary(
+        reactor_types=["shock_tube"],
+        species_studied=["NH3", "O2"],
+        temperature_range="1200-2000 K",
+        pressure_range="1-10 atm",
+        experimental_setup="X" * 2000,
+    )
+    paper = PaperDocument(pdf_path="/tmp/p.pdf", pages=[], captions=[])
+    deps = ConditionDeps(paper=paper, paper_summary=summary)
+    result = get_paper_summary(deps)
+    assert len(result) < 900
+    assert "truncated" in result
+
+
+# ── get_page ───────────────────────────────────────────────────────────────
+
+
+def test_get_page_returns_text(deps: ConditionDeps):
+    """get_page returns the text of a specific page."""
+    result = get_page(deps, 1)
+    assert "Temperature range" in result
+
+
+def test_get_page_not_found(deps: ConditionDeps):
+    """get_page returns message for missing page."""
+    result = get_page(deps, 99)
+    assert "not found" in result.lower()
+
+
+def test_get_page_truncates_long_page():
+    """get_page truncates to 1500 chars."""
+    paper = PaperDocument(
+        pdf_path="/tmp/p.pdf",
+        pages=[PageText(page_num=1, text="Z" * 5000)],
+        captions=[],
+    )
+    deps = ConditionDeps(paper=paper)
+    result = get_page(deps, 1)
+    assert len(result) < 1600
+    assert "truncated" in result
+
+
+# ── get_evidence with page filter ──────────────────────────────────────────
+
+
+def test_get_evidence_filters_by_page(deps: ConditionDeps):
+    """get_evidence(kind, page=N) only returns evidence from page N."""
+    fake_evidence = [
+        EvidenceSnippet(
+            kind="temperature", value_text="1200 K", page_num=1,
+            source_text="T=1200K", confidence=0.9,
+        ),
+        EvidenceSnippet(
+            kind="temperature", value_text="2000 K", page_num=3,
+            source_text="T=2000K", confidence=0.8,
+        ),
+    ]
+
+    with patch(
+        "src.agents.tools.condition_tools.extract_evidence",
+        return_value=fake_evidence,
+    ):
+        result = get_evidence(deps, "temperature", page=1)
+
+    assert "1200 K" in result
+    assert "2000 K" not in result
+
+
+def test_get_evidence_page_filter_no_match(deps: ConditionDeps):
+    """get_evidence with page filter returns message when no match."""
+    fake_evidence = [
+        EvidenceSnippet(
+            kind="temperature", value_text="1200 K", page_num=1,
+            source_text="T=1200K", confidence=0.9,
+        ),
+    ]
+
+    with patch(
+        "src.agents.tools.condition_tools.extract_evidence",
+        return_value=fake_evidence,
+    ):
+        result = get_evidence(deps, "temperature", page=99)
+
+    assert "No temperature evidence" in result
+    assert "page 99" in result

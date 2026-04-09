@@ -297,6 +297,7 @@ async def run_path1(
     llm_client: LLMClient,
     literature_model: Path | None = None,
     species_aliases: dict[str, str] | None = None,
+    literature_aliases: dict[str, str] | None = None,
     paper_summary: PaperSummary | None = None,
 ) -> Path1Results:
     """Execute the full Path 1 pipeline: literature model evaluation.
@@ -379,21 +380,16 @@ async def run_path1(
             spec = _to_spec(cond, i, "placeholder")
 
             # Run both models (aliases only for original — literature uses paper names)
-            lit_result = run_simulation(spec, str(literature_model))
+            lit_result = run_simulation(spec, str(literature_model), aliases=literature_aliases)
             orig_result = run_simulation(spec, str(original_model), aliases=species_aliases)
 
-            if not lit_result.success:
-                logger.warning("Literature sim failed for %s: %s", cond_id, lit_result.error)
-                continue
             if not orig_result.success:
                 logger.warning("Original sim failed for %s: %s", cond_id, orig_result.error)
                 continue
 
-            # Extract observable values
-            lit_value = _extract_observable(lit_result)
             orig_value = _extract_observable(orig_result)
-            if lit_value is None or orig_value is None:
-                logger.warning("Could not extract observable for %s", cond_id)
+            if orig_value is None:
+                logger.warning("Could not extract observable for %s (original)", cond_id)
                 continue
 
             # Match against experimental data
@@ -408,16 +404,7 @@ async def run_path1(
                 else [exp_cond.measured_value]
             )
 
-            lit_mae = compute_mae([lit_value], measured)
             orig_mae = compute_mae([orig_value], measured)
-
-            mae_results.append(MAEResult(
-                model_name="literature",
-                conditions_id=cond_id,
-                mae=lit_mae,
-                threshold=exp_cond.error_threshold,
-                passed=lit_mae <= exp_cond.error_threshold,
-            ))
             mae_results.append(MAEResult(
                 model_name="original",
                 conditions_id=cond_id,
@@ -426,12 +413,30 @@ async def run_path1(
                 passed=orig_mae <= exp_cond.error_threshold,
             ))
 
+            # Literature MAE — only when simulation succeeded
+            if lit_result.success:
+                lit_value = _extract_observable(lit_result)
+                if lit_value is not None:
+                    lit_mae = compute_mae([lit_value], measured)
+                    mae_results.append(MAEResult(
+                        model_name="literature",
+                        conditions_id=cond_id,
+                        mae=lit_mae,
+                        threshold=exp_cond.error_threshold,
+                        passed=lit_mae <= exp_cond.error_threshold,
+                    ))
+                else:
+                    logger.warning("Could not extract observable for %s (literature)", cond_id)
+            else:
+                logger.warning("Literature sim failed for %s: %s", cond_id, lit_result.error)
+
         except Exception as e:
             logger.warning("Condition %s failed: %s", cond_id, e)
             continue
 
     # ── Step 7: Build results ────────────────────────────────────────────
-    tested_ids = {r.conditions_id for r in mae_results}
+    # conditions_tested = conditions where the original model was simulated
+    tested_ids = {r.conditions_id for r in mae_results if r.model_name == "original"}
 
     lit_better_count = 0
     for cid in tested_ids:

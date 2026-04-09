@@ -30,6 +30,7 @@ class ConditionDeps(BaseModel):
     paper: PaperDocument
     model_species: list[str] = Field(default_factory=list)
     paper_summary: PaperSummary | None = None
+    executable_plans: list[SimulationPlan] = Field(default_factory=list)
 
     # Cached pipeline results (populated lazily by tools).
     _evidence: list[EvidenceSnippet] | None = None
@@ -38,16 +39,25 @@ class ConditionDeps(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
 
+def _truncate(text: str, limit: int, label: str = "") -> str:
+    """Truncate text to limit chars, logging if truncated."""
+    if len(text) <= limit:
+        return text
+    logger.debug("Truncated %s from %d to %d chars", label, len(text), limit)
+    return text[:limit] + f"\n... [truncated, {len(text) - limit} chars omitted]"
+
+
 # ── Tool implementations ────────────────────────────────────────────────────
 # Plain functions — registered on the Agent via @agent.tool in the agent module.
 
 
-def get_evidence(deps: ConditionDeps, kind: str) -> str:
+def get_evidence(deps: ConditionDeps, kind: str, page: int | None = None) -> str:
     """Extract evidence snippets of a given kind from the paper.
 
     Args:
         kind: One of temperature, pressure, composition, experiment_family,
               observable_type, residence_time.
+        page: If provided, only return evidence from this page number.
 
     Returns:
         Formatted evidence snippets: "Page N (conf=X.XX): {source_text}"
@@ -57,14 +67,38 @@ def get_evidence(deps: ConditionDeps, kind: str) -> str:
             deps._evidence = extract_evidence(deps.paper)
 
         filtered = [s for s in deps._evidence if s.kind == kind]
+        if page is not None:
+            filtered = [s for s in filtered if s.page_num == page]
         if not filtered:
-            return f"No {kind} evidence found in the paper."
+            msg = f"No {kind} evidence found"
+            if page is not None:
+                msg += f" on page {page}"
+            return msg + "."
 
+        filtered_top = sorted(filtered, key=lambda x: x.confidence, reverse=True)[:5]
         lines: list[str] = []
-        for s in sorted(filtered, key=lambda x: x.confidence, reverse=True):
+        for s in filtered_top:
             display = s.normalized_value if s.normalized_value is not None else s.value_text
-            lines.append(f"Page {s.page_num} (conf={s.confidence:.2f}): {display}")
+            lines.append(_truncate(f"Page {s.page_num} (conf={s.confidence:.2f}): {display}", 200, "evidence"))
         return "\n".join(lines)
+    except Exception as e:
+        return f"Tool error: {e}"
+
+
+def get_page(deps: ConditionDeps, page_num: int) -> str:
+    """Return text of a specific page from the paper.
+
+    Args:
+        page_num: 1-based page number.
+
+    Returns:
+        Page text truncated to 1500 chars.
+    """
+    try:
+        for page in deps.paper.pages:
+            if page.page_num == page_num:
+                return _truncate(page.text, 1500, f"page:{page_num}")
+        return f"Page {page_num} not found. Paper has {len(deps.paper.pages)} pages."
     except Exception as e:
         return f"Tool error: {e}"
 
@@ -84,7 +118,7 @@ def get_executable_plans(deps: ConditionDeps) -> str:
             return "No executable simulation plans found."
 
         lines: list[str] = []
-        for i, plan in enumerate(deps._plans):
+        for i, plan in enumerate(deps._plans[:10]):
             parts = [f"Plan {i + 1}: {plan.experiment_family}"]
 
             if plan.temperature:
@@ -108,7 +142,7 @@ def get_executable_plans(deps: ConditionDeps) -> str:
             if plan.target_observables:
                 parts.append(f"observable={plan.target_observables[0]}")
 
-            lines.append(" | ".join(parts))
+            lines.append(_truncate(" | ".join(parts), 150, f"plan:{i+1}"))
 
         return "\n".join(lines)
     except Exception as e:
@@ -171,13 +205,13 @@ def get_paper_summary(deps: ConditionDeps) -> str:
                 parts.append(f"Observables: {', '.join(deps.paper_summary.observable_types)}")
             if deps.paper_summary.experimental_setup:
                 parts.append(f"Setup: {deps.paper_summary.experimental_setup}")
-            return "\n".join(parts) if parts else "Paper summary available but empty."
+            return _truncate("\n".join(parts), 800, "paper_summary") if parts else "Paper summary available but empty."
 
         if deps.paper.abstract:
-            return f"Abstract: {deps.paper.abstract}"
+            return _truncate(f"Abstract: {deps.paper.abstract}", 800, "paper_summary")
 
         if deps.paper.pages:
-            return f"First page: {deps.paper.pages[0].text[:500]}"
+            return _truncate(f"First page: {deps.paper.pages[0].text}", 800, "paper_summary")
 
         return "No paper summary available."
     except Exception as e:

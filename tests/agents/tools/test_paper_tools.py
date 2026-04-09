@@ -296,3 +296,77 @@ def test_paper_deps_sections_cached(deps: PaperDeps):
     s1 = deps.sections
     s2 = deps.sections
     assert s1 is s2
+
+
+# ── Truncation tests ────────────────────────────────────────────────────────
+
+
+def test_get_abstract_truncates_long_abstract():
+    paper = PaperDocument(
+        pdf_path="/f.pdf",
+        abstract="A" * 2000,
+        pages=[],
+        captions=[],
+    )
+    deps = PaperDeps(paper=paper)
+    result = get_abstract(deps)
+    assert len(result) < 900  # 800 + truncation notice
+    assert "truncated" in result
+
+
+def test_get_section_truncates_long_section(deps: PaperDeps):
+    # The fixture already has "2. Experimental Methods" on page 2.
+    # Replace page 2 text with a long version.
+    deps.paper.pages[1] = PageText(
+        page_num=2, text="2. Experimental Methods\n" + "X" * 5000,
+    )
+    deps._sections = None  # reset cached sections
+    result = get_section(deps, "methods")
+    assert len(result) < 2100
+    assert "truncated" in result
+
+
+def test_search_text_truncates_long_passages():
+    long_line = "keyword " + "Y" * 500
+    pages = [PageText(page_num=1, text=long_line)]
+    paper = PaperDocument(pdf_path="/f.pdf", pages=pages, captions=[])
+    deps = PaperDeps(paper=paper)
+    result = search_text(deps, "keyword")
+    # Each passage capped at 200 chars
+    passage = result.split("Page 1: ")[1]
+    assert len(passage) <= 200
+
+
+def test_get_table_truncates_large_table():
+    rows = [
+        TableRow(row_index=i, cells={
+            "col": TableConditionValue(mode="single", raw_text="V" * 100, values=[float(i)]),
+        })
+        for i in range(50)
+    ]
+    paper = PaperDocument(
+        pdf_path="/f.pdf", pages=[], captions=[],
+        tables=[ParsedTable(
+            table_id="Table 1", page_num=1, caption="Big table",
+            columns=[TableColumn(header="col", role="value", unit="")],
+            rows=rows,
+        )],
+    )
+    deps = PaperDeps(paper=paper)
+    result = get_table(deps, "1")
+    assert len(result) < 1600
+    assert "truncated" in result
+
+
+def test_get_figure_caption_truncates_long_caption():
+    paper = PaperDocument(
+        pdf_path="/f.pdf", pages=[], tables=[],
+        captions=[FigureCaption(
+            figure_id="Figure 1", label_type="Figure", page_num=1,
+            caption="C" * 500,
+        )],
+    )
+    deps = PaperDeps(paper=paper)
+    result = get_figure_caption(deps, "1")
+    assert len(result) < 500
+    assert "truncated" in result

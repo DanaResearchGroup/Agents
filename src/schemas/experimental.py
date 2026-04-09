@@ -607,6 +607,7 @@ class RunConfig(BaseModel):
     llm_config: Path = Path("config/llm_config.yaml")
     literature_model: Path | None = None
     species_aliases: dict[str, str] = Field(default_factory=dict)
+    literature_aliases: dict[str, str] = Field(default_factory=dict)
 
 
 # ── Condition extraction models ──────────────────────────────────────────────

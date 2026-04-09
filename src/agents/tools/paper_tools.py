@@ -6,12 +6,15 @@ explore a parsed paper incrementally rather than ingesting it whole.
 
 from __future__ import annotations
 
+import logging
 import re
 
 from pydantic import BaseModel, Field
 
 from src.schemas.experimental import PaperDocument, SectionSpan
 from src.ingestion.pdf_parser.section_detector import detect_sections
+
+log = logging.getLogger(__name__)
 
 
 class PaperDeps(BaseModel):
@@ -56,6 +59,14 @@ def _caption_num(caption_id: str) -> str:
     return m.group(1) if m else caption_id
 
 
+def _truncate(text: str, limit: int, label: str = "") -> str:
+    """Truncate text to limit chars, logging if truncated."""
+    if len(text) <= limit:
+        return text
+    log.debug("Truncated %s from %d to %d chars", label, len(text), limit)
+    return text[:limit] + f"\n... [truncated, {len(text) - limit} chars omitted]"
+
+
 # ── Tool implementations ────────────────────────────────────────────────────
 # These are plain functions. They get registered on a PydanticAI Agent via
 # agent.tool decorator in the agent module (paper_reader.py).
@@ -65,9 +76,9 @@ def get_abstract(deps: PaperDeps) -> str:
     """Return the paper abstract, or the first 500 characters of page 1."""
     try:
         if deps.paper.abstract:
-            return deps.paper.abstract
+            return _truncate(deps.paper.abstract, 800, "abstract")
         if deps.paper.pages:
-            return deps.paper.pages[0].text[:500]
+            return _truncate(deps.paper.pages[0].text, 800, "abstract")
         return "No abstract or text available."
     except Exception as e:
         return f"Tool error: {e}"
@@ -98,7 +109,7 @@ def get_section(deps: PaperDeps, section_name: str) -> str:
         for page in deps.paper.pages:
             if match.page_start <= page.page_num <= match.page_end:
                 parts.append(page.text)
-        return "\n".join(parts) if parts else "Section found but no text available."
+        return _truncate("\n".join(parts), 2000, f"section:{section_name}") if parts else "Section found but no text available."
     except Exception as e:
         return f"Tool error: {e}"
 
@@ -121,7 +132,7 @@ def search_text(deps: PaperDeps, query: str) -> str:
                     start = max(0, i - 1)
                     end = min(len(lines), i + 2)
                     passage = " ".join(lines[start:end]).strip()
-                    hits.append(f"Page {page.page_num}: {passage}")
+                    hits.append(f"Page {page.page_num}: {passage[:200]}")
                     if len(hits) >= 5:
                         break
             if len(hits) >= 5:
@@ -142,7 +153,7 @@ def get_figure_caption(deps: PaperDeps, figure_id: str) -> str:
         for cap in deps.paper.captions:
             if cap.label_type.lower() in ("figure", "fig", "fig."):
                 if _caption_num(cap.figure_id) == num:
-                    return f"{cap.figure_id} (p.{cap.page_num}): {cap.caption}"
+                    return _truncate(f"{cap.figure_id} (p.{cap.page_num}): {cap.caption}", 400, "caption")
         return "Figure not found."
     except Exception as e:
         return f"Tool error: {e}"
@@ -162,7 +173,7 @@ def get_table(deps: PaperDeps, table_id: str) -> str:
                 for row in tbl.rows:
                     cells = [v.raw_text for v in row.cells.values()]
                     rows_text.append(" | ".join(cells))
-                return f"{tbl.table_id}: {tbl.caption}\n{header}\n" + "\n".join(rows_text)
+                return _truncate(f"{tbl.table_id}: {tbl.caption}\n{header}\n" + "\n".join(rows_text), 1500, f"table:{table_id}")
         return "Table not found."
     except Exception as e:
         return f"Tool error: {e}"
@@ -199,7 +210,7 @@ def list_tables(deps: PaperDeps) -> str:
                 f"{c.figure_id} (p.{c.page_num}): {c.caption[:100]}" for c in tbl_caps
             )
         return "\n".join(
-            f"{t.table_id} (p.{t.page_num}): {t.caption}" for t in deps.paper.tables
+            f"{t.table_id} (p.{t.page_num}): {t.caption[:100]}" for t in deps.paper.tables
         )
     except Exception as e:
         return f"Tool error: {e}"

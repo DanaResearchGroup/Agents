@@ -1,0 +1,24 @@
+run_id: run_20260409_172518
+original_model: /home/calvin/code/Agents/data/models/chem_annotated_nh3.yaml
+experimental_data: NH3_Stagni2021_SmokeTest
+path1:
+  literature_model: /home/calvin/code/Agents/data/models/nh3_literature_minimal.yaml
+  source_doi: null
+  conditions_tested: 3
+  results:
+  - condition_id: cond_0
+    original_mae: '0.5454'
+    threshold: '0.0002'
+    literature_mae: N/A
+    literature_better: false
+  - condition_id: cond_1
+    original_mae: '0.3337'
+    threshold: '0.0001'
+    literature_mae: N/A
+    literature_better: false
+  - condition_id: cond_2
+    original_mae: '0.3612'
+    threshold: '0.0001'
+    literature_mae: N/A
+    literature_better: false
+  overall_literature_better: false

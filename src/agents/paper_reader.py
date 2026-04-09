@@ -14,6 +14,7 @@ from pydantic_ai import Agent, RunContext
 
 from src.agents.llm_client import LLMConfig
 from src.agents.provider import make_model
+from src.agents.utils import strip_thinking
 from src.agents.tools.paper_tools import (
     PaperDeps,
     get_abstract,
@@ -103,13 +104,29 @@ async def read_paper(
     model = make_model(config, agent_name="paper_reader")
     deps = PaperDeps(paper=paper, model_species=model_species or [])
 
+    prompt = (
+        "Use tools to read the paper and produce a summary. "
+        "Start with get_abstract(), then list_sections(), "
+        "then read the experimental section."
+    )
+    assert len(prompt.split()) < 100, "Initial prompt must not contain paper text"
     result = await paper_reader_agent.run(
-        "Read this paper and produce a structured summary.",
+        prompt,
         deps=deps,
         model=model,
     )
 
     summary = result.output
+    # Clean any thinking tags that leaked into string fields.
+    for field_name in PaperSummary.model_fields:
+        value = getattr(summary, field_name)
+        if isinstance(value, str) and "<think>" in value:
+            setattr(summary, field_name, strip_thinking(value))
+        elif isinstance(value, list):
+            setattr(summary, field_name, [
+                strip_thinking(v) if isinstance(v, str) and "<think>" in v else v
+                for v in value
+            ])
     logger.info(
         "PaperReaderAgent: %s | T=%s | tables=%d figures=%d",
         summary.reactor_types,

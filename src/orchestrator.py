@@ -152,6 +152,7 @@ class Orchestrator:
             llm_client=self.llm_client,
             literature_model=self.config.literature_model,
             species_aliases=self.config.species_aliases or None,
+            literature_aliases=self.config.literature_aliases or None,
         )
 
     async def _run_path2(self, paper: PaperRecord, path1_results=None) -> object:
