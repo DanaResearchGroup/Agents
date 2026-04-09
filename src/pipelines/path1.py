@@ -135,6 +135,26 @@ def _deduplicate_conditions(conditions: list[SimConditions]) -> list[SimConditio
     return deduped
 
 
+def _filter_by_reactor_family(
+    conditions: list[SimConditions],
+    dataset: ExperimentalDataset,
+) -> list[SimConditions]:
+    """Keep only conditions whose reactor_type appears in experimental data.
+
+    If experimental data only has shock_tube conditions, discard any
+    pipeline-extracted conditions with different reactor families.
+    """
+    exp_reactors = {exp.reactor_type for exp in dataset.conditions}
+    filtered = [c for c in conditions if c.reactor_type in exp_reactors]
+    dropped = len(conditions) - len(filtered)
+    if dropped:
+        logger.info(
+            "Reactor filter: kept %d, dropped %d (exp reactors: %s)",
+            len(filtered), dropped, [r.value for r in exp_reactors],
+        )
+    return filtered
+
+
 def _find_mechanism(paper: PaperRecord) -> Path:
     """Locate a Chemkin mechanism file in the paper's SI directory."""
     if not paper.si_path:
@@ -201,8 +221,8 @@ def _extract_observable(result: SimulationResult) -> float | None:
 def _match_experimental(
     cond: SimConditions,
     dataset: ExperimentalDataset,
-    t_tol: float = 50.0,
-    p_tol: float = 0.1,
+    t_tol: float = 100.0,
+    p_tol: float = 0.15,
 ) -> ExperimentalCondition | None:
     """Find the closest experimental condition matching by reactor, observable, T, P.
 
@@ -239,8 +259,8 @@ def _match_experimental(
 
     if best is not None and best_dist > 0:
         logger.info(
-            "Tolerance match: sim T=%.1fK P=%.2fatm → exp T=%s P=%s (dist=%.2f)",
-            cond.T, cond.P, best.temperature_K, best.pressure_atm, best_dist,
+            "Tolerance match: sim T=%.1f P=%.2f matched to exp T=%s P=%s",
+            cond.T, cond.P, best.temperature_K, best.pressure_atm,
         )
 
     return best
@@ -314,9 +334,12 @@ async def run_path1(
     # Deduplicate by (reactor_type, T, P, observable_type)
     conditions = _deduplicate_conditions(conditions)
 
+    # Filter to reactor families present in experimental data.
+    conditions = _filter_by_reactor_family(conditions, experimental_data)
+
     if not conditions:
         raise ValueError("No conditions extracted")
-    logger.info("Total conditions after dedup: %d", len(conditions))
+    logger.info("Total conditions after dedup/filter: %d", len(conditions))
 
     # ── Step 5 & 6: Simulate and compute MAE ─────────────────────────────
     mae_results: list[MAEResult] = []

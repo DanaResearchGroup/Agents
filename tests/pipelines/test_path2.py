@@ -215,7 +215,7 @@ async def test_happy_path_two_reactions_one_improves(
     """Two reactions mined, two branches — one improves baseline."""
     call_count = 0
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         nonlocal call_count
         call_count += 1
         # Baseline: IDT = 0.005 for both conditions (far from measured 0.001 / 0.0005)
@@ -287,7 +287,7 @@ async def test_all_baseline_simulations_fail_raises(
     paper, original_model, experimental_data, llm_client, tmp_path,
 ):
     """ValueError when every baseline simulation fails."""
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         return _make_failed_result(spec.experiment_id, "Cantera error")
 
     patches = _patch_all(run_sim_side_effect=mock_run_sim)
@@ -320,7 +320,7 @@ async def test_reaction_missing_rate_params_skipped(
         ),
     ])
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         if "original" in mechanism_file:
             return _make_sim_result(spec.experiment_id, 0.005)
         return _make_sim_result(spec.experiment_id, 0.004)
@@ -353,7 +353,7 @@ async def test_branch_validation_failure_propagates(
         ValueError("Branch model is missing original reactions"),
     ])
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         return _make_sim_result(spec.experiment_id, 0.005)
 
     patches = _patch_all(run_sim_side_effect=mock_run_sim)
@@ -378,7 +378,7 @@ async def test_no_branch_improves_best_is_none(
     paper, original_model, experimental_data, llm_client, tmp_path,
 ):
     """best_branch_id is None when no branch improves baseline."""
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         if "original" in mechanism_file:
             return _make_sim_result(spec.experiment_id, 0.001)  # perfect baseline
         return _make_sim_result(spec.experiment_id, 0.005)  # branches worse
@@ -419,7 +419,7 @@ async def test_path1_results_accepted(
         },
     )
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         return _make_sim_result(spec.experiment_id, 0.005)
 
     patches = _patch_all(run_sim_side_effect=mock_run_sim)
@@ -445,7 +445,7 @@ async def test_partial_branch_simulation_failure(
     """Branch MAE computed from successful conditions only when some fail."""
     call_count = 0
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         nonlocal call_count
         call_count += 1
         # Baseline succeeds for both

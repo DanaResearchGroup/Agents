@@ -85,7 +85,7 @@ async def test_read_paper_returns_summary(
     mock_summary: PaperSummary,
 ):
     mock_result = AsyncMock()
-    mock_result.data = mock_summary
+    mock_result.output = mock_summary
 
     with patch.object(paper_reader_agent, "run", return_value=mock_result) as mock_run:
         result = await read_paper(paper=sample_paper, config=config)
@@ -108,7 +108,7 @@ async def test_read_paper_passes_model_species(
     mock_summary: PaperSummary,
 ):
     mock_result = AsyncMock()
-    mock_result.data = mock_summary
+    mock_result.output = mock_summary
 
     with patch.object(paper_reader_agent, "run", return_value=mock_result) as mock_run:
         await read_paper(
@@ -126,7 +126,7 @@ async def test_read_paper_uses_agent_name_override(
 ):
     """make_model should be called with agent_name='paper_reader'."""
     mock_result = AsyncMock()
-    mock_result.data = mock_summary
+    mock_result.output = mock_summary
 
     config = LLMConfig(
         provider="anthropic",
@@ -153,7 +153,7 @@ async def test_read_paper_logs_summary(
     caplog,
 ):
     mock_result = AsyncMock()
-    mock_result.data = mock_summary
+    mock_result.output = mock_summary
 
     with patch.object(paper_reader_agent, "run", return_value=mock_result):
         import logging

@@ -1,0 +1,9 @@
+run_id: run_20260408_215617
+original_model: /home/calvin/code/Agents/data/models/chem_annotated_nh3.yaml
+experimental_data: NH3_Stagni2021_SmokeTest
+path1:
+  literature_model: /home/calvin/code/Agents/data/models/nh3_literature_minimal.yaml
+  source_doi: null
+  conditions_tested: 0
+  results: []
+  overall_literature_better: false

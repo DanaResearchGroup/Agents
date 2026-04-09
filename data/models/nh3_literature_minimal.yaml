@@ -1,0 +1,170 @@
+units: {length: cm, time: s, quantity: mol, activation-energy: cal/mol}
+
+phases:
+- name: gas
+  thermo: ideal-gas
+  elements: [N, H, O, Ar]
+  species: [NH3, NH2, NH, N, H, H2, N2, O, OH, H2O, NO, O2, HNO, N2O, Ar]
+  kinetics: gas
+  reactions: all
+  state: {T: 300.0, P: 101325.0}
+
+species:
+- name: NH3
+  composition: {N: 1, H: 3}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.2860274, -4.6605581e-03, 2.1718513e-05, -2.2808887e-08, 8.2638046e-12, -6741.7285, -0.62537277]
+    - [2.6344521, 5.6662560e-03, -1.7278410e-06, 2.3858838e-10, -1.2578324e-14, -6544.6958, 6.5662870]
+- name: NH2
+  composition: {N: 1, H: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.2040029, -2.1061785e-03, 7.1068272e-06, -5.6115197e-09, 1.6440717e-12, 21349.530, -0.14184248]
+    - [2.8347422, 3.2073082e-03, -9.3390804e-07, 1.3702953e-10, -7.9206144e-15, 21721.958, 6.5204163]
+- name: NH
+  composition: {N: 1, H: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.4929085, 3.1179198e-04, -1.4890484e-06, 2.4816442e-09, -1.0356967e-12, 41880.629, 1.8483278]
+    - [2.7836928, 1.3298430e-03, -4.2478047e-07, 7.8348501e-11, -5.0048956e-15, 42120.848, 5.7407799]
+- name: N
+  composition: {N: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.5000000, 0.0, 0.0, 0.0, 0.0, 56104.638, 4.1939088]
+    - [2.4159429, 1.7489065e-04, -1.1902369e-07, 3.0226244e-11, -2.0360983e-15, 56133.775, 4.6496095]
+- name: H
+  composition: {H: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.5000000, 0.0, 0.0, 0.0, 0.0, 25473.660, -0.44668285]
+    - [2.5000000, 0.0, 0.0, 0.0, 0.0, 25473.660, -0.44668285]
+- name: H2
+  composition: {H: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.3443029, 7.9804249e-03, -1.9477917e-05, 2.0156967e-08, -7.3760289e-12, -917.92413, 0.68300218]
+    - [2.9328305, 8.2659802e-04, -1.4640057e-07, 1.5409851e-11, -6.8879615e-16, -813.05582, -1.0243164]
+- name: N2
+  composition: {N: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.5309628, -1.2381369e-04, -5.0299339e-07, 2.4352768e-09, -1.4087954e-12, -1046.9637, 2.9674391]
+    - [2.9525407, 1.3968838e-03, -4.9262577e-07, 7.8600091e-11, -4.6074978e-15, -923.93753, 5.8718221]
+- name: O
+  composition: {O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.1682671, -3.2797180e-03, 6.6431137e-06, -6.1280780e-09, 2.1120143e-12, 29122.259, 2.0519533]
+    - [2.5426642, -2.7550619e-05, -3.1028033e-09, 4.5510133e-12, -4.3681480e-16, 29227.760, 4.9203080]
+- name: OH
+  composition: {O: 1, H: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.9919622, -2.4010726e-03, 4.6166573e-06, -3.8791768e-09, 1.3641102e-12, 3375.4840, -0.10398686]
+    - [2.8382022, 1.1085843e-03, -2.9400199e-07, 4.2069438e-11, -2.4228514e-15, 3944.3136, 5.8449440]
+- name: H2O
+  composition: {H: 2, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.1986352, -2.0364017e-03, 6.5203416e-06, -5.4879269e-09, 1.7719680e-12, -30293.726, -0.84900901]
+    - [2.6770389, 2.9731816e-03, -7.7376889e-07, 9.4433514e-11, -4.2689991e-15, -29885.894, 6.8825500]
+- name: NO
+  composition: {N: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.2184763, -4.6389760e-03, 1.1041022e-05, -9.3361354e-09, 2.8035770e-12, 9845.0996, 2.2808464]
+    - [3.2606056, 1.1911043e-03, -4.2917048e-07, 6.9457669e-11, -4.0336099e-15, 9920.9746, 6.3693027]
+- name: O2
+  composition: {O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.7837135, -3.0233634e-03, 9.9492751e-06, -9.8189101e-09, 3.3031825e-12, -1063.8107, 3.6416345]
+    - [3.6122139, 7.4853166e-04, -1.9820647e-07, 3.3749008e-11, -2.3907374e-15, -1197.8151, 3.6703307]
+- name: HNO
+  composition: {H: 1, N: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.5334916, -5.6696171e-03, 1.8521167e-05, -1.7171978e-08, 5.5537696e-12, 11548.897, 1.7436786]
+    - [3.1663761, 3.0000877e-03, -3.2732225e-07, -1.4388475e-10, 3.0446896e-14, 11738.860, 7.6309588]
+- name: N2O
+  composition: {N: 2, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.2571502, 1.1304728e-02, -1.3671319e-05, 9.6819803e-09, -2.9307182e-12, 8741.7746, 10.757992]
+    - [4.8230729, 2.6270251e-03, -9.5850874e-07, 1.6000712e-10, -9.7752303e-15, 8073.4048, -2.2017208]
+- name: Ar
+  composition: {Ar: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.5000000, 0.0, 0.0, 0.0, 0.0, -745.37500, 4.3796749]
+    - [2.5000000, 0.0, 0.0, 0.0, 0.0, -745.37500, 4.3796749]
+
+reactions:
+- equation: NH3 + M <=> NH2 + H + M
+  type: three-body
+  rate-constant: {A: 2.20e+16, b: 0.0, Ea: 93470.0}
+- equation: NH3 + H <=> NH2 + H2
+  rate-constant: {A: 5.42e+05, b: 2.4, Ea: 9915.0}
+- equation: NH3 + O <=> NH2 + OH
+  rate-constant: {A: 9.40e+06, b: 1.94, Ea: 6460.0}
+- equation: NH3 + OH <=> NH2 + H2O
+  rate-constant: {A: 2.04e+06, b: 2.04, Ea: 566.0}
+- equation: NH2 + H <=> NH + H2
+  rate-constant: {A: 4.00e+13, b: 0.0, Ea: 3650.0}
+- equation: NH2 + O <=> NH + OH
+  rate-constant: {A: 7.00e+12, b: 0.0, Ea: 0.0}
+- equation: NH2 + OH <=> NH + H2O
+  rate-constant: {A: 4.00e+06, b: 2.0, Ea: 1000.0}
+- equation: NH + H <=> N + H2
+  rate-constant: {A: 3.00e+13, b: 0.0, Ea: 0.0}
+- equation: NH + O <=> NO + H
+  rate-constant: {A: 4.00e+13, b: 0.0, Ea: 0.0}
+- equation: NH + OH <=> N + H2O
+  rate-constant: {A: 5.00e+11, b: 0.5, Ea: 2000.0}
+- equation: N + O2 <=> NO + O
+  rate-constant: {A: 6.40e+09, b: 1.0, Ea: 6280.0}
+- equation: N + OH <=> NO + H
+  rate-constant: {A: 3.80e+13, b: 0.0, Ea: 0.0}
+- equation: NH2 + NO <=> N2O + H2
+  rate-constant: {A: 1.00e+12, b: 0.0, Ea: 35000.0}
+- equation: HNO + H <=> NO + H2
+  rate-constant: {A: 4.46e+11, b: 0.72, Ea: 655.0}
+- equation: HNO + OH <=> NO + H2O
+  rate-constant: {A: 1.30e+07, b: 1.88, Ea: -950.0}
+- equation: NH + NO <=> N2O + H
+  rate-constant: {A: 2.94e+14, b: -0.4, Ea: 0.0}
+- equation: H + OH + M <=> H2O + M
+  type: three-body
+  rate-constant: {A: 2.20e+22, b: -2.0, Ea: 0.0}

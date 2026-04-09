@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: chem-agent
+Version: 0.1.0
+Summary: Multi-agent framework for evaluating and improving chemical kinetic models
+Requires-Python: >=3.11
+Requires-Dist: cantera>=3.0
+Requires-Dist: numpy>=1.24
+Requires-Dist: litellm>=1.0
+Requires-Dist: pydantic-ai>=0.0.14
+Requires-Dist: pydantic>=2.0
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: PyMuPDF>=1.24.0
+Requires-Dist: requests>=2.31
+Requires-Dist: duckduckgo-search>=5.0
+Requires-Dist: Jinja2>=3.1
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-randomly; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23; extra == "dev"

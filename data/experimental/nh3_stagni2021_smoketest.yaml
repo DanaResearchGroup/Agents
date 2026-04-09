@@ -61,3 +61,25 @@ conditions:
     observable_label: "NH3(1)"
     measured_value: 0.004
     error_threshold: 0.001
+
+  - reactor_type: shock_tube
+    temperature_K: 2373.0
+    pressure_atm: 1.16
+    mixture:
+      "NH3(1)": 0.0045
+      Ar: 0.9955
+    observable_type: species_profile
+    observable_label: "NH3(1)"
+    measured_value: 0.00005
+    error_threshold: 0.0001
+
+  - reactor_type: shock_tube
+    temperature_K: 2400.0
+    pressure_atm: 1.0
+    mixture:
+      "NH3(1)": 0.005
+      Ar: 0.995
+    observable_type: species_profile
+    observable_label: "NH3(1)"
+    measured_value: 0.00002
+    error_threshold: 0.00005

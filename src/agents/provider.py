@@ -57,6 +57,9 @@ def make_model(
 
     if provider == "ollama":
         api_key = api_key or "ollama"
+        model_name = model_name.removeprefix("ollama/")
+        if base_url and not base_url.rstrip("/").endswith("/v1"):
+            base_url = base_url.rstrip("/") + "/v1"
 
     prov = OpenAIProvider(base_url=base_url, api_key=api_key)
     return OpenAIModel(model_name, provider=prov)

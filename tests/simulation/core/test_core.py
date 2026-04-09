@@ -1,5 +1,8 @@
 """Tests for migrated core modules (no Cantera dependency)."""
 
+from src.schemas.experimental import SimConditions, ReactorType, ObservableType
+from src.simulation.core.runner import _apply_aliases
+
 import pytest
 
 from src.simulation.core.simulation_spec import SimulationSpec
@@ -200,3 +203,77 @@ def test_mechanism_info():
     info = MechanismInfo(path="/tmp/mech.yaml", name="test_mech", n_species=53, n_reactions=325)
     assert info.name == "test_mech"
     assert info.n_species == 53
+
+
+# -- Species name preservation ------------------------------------------------
+
+def test_species_names_with_rmg_indices_preserved():
+    """SimConditions with RMG-style names like NH3(1) must pass through to
+    SimulationSpec.composition without stripping the index suffix."""
+    cond = SimConditions(
+        reactor_type=ReactorType.SHOCK_TUBE,
+        T=1200.0,
+        P=1.0,
+        X={"NH3(1)": 0.005, "Ar": 0.995},
+        observable_type=ObservableType.IDT,
+    )
+    # Verify dict keys are exactly as provided
+    assert "NH3(1)" in cond.X
+    assert "Ar" in cond.X
+    assert "NH3" not in cond.X
+
+    # Verify flow through _to_spec
+    from src.pipelines.path1 import _to_spec
+    spec = _to_spec(cond, 0, "/tmp/mech.yaml")
+    assert "NH3(1)" in spec.composition
+    assert "Ar" in spec.composition
+    assert "NH3" not in spec.composition
+
+
+# -- Species alias mapping ----------------------------------------------------
+
+def test_apply_aliases_remaps_species():
+    """_apply_aliases remaps keys present in the alias dict."""
+    composition = {"NH3": 0.005, "O2": 0.21, "Ar": 0.785}
+    aliases = {"NH3": "NH3(1)", "O2": "O2(6)"}
+    result = _apply_aliases(composition, aliases)
+    assert result == {"NH3(1)": 0.005, "O2(6)": 0.21, "Ar": 0.785}
+
+
+def test_apply_aliases_unknown_species_pass_through():
+    """Species not in aliases pass through unchanged."""
+    composition = {"NH3": 0.005, "Kr": 0.995}
+    aliases = {"NH3": "NH3(1)"}
+    result = _apply_aliases(composition, aliases)
+    assert result == {"NH3(1)": 0.005, "Kr": 0.995}
+
+
+def test_apply_aliases_empty_aliases_is_identity():
+    """Empty aliases dict returns composition unchanged."""
+    composition = {"NH3": 0.005, "Ar": 0.995}
+    result = _apply_aliases(composition, {})
+    assert result == composition
+
+
+def test_observable_species_remapped_by_run_simulation():
+    """run_simulation applies aliases to observable_species when present."""
+    spec = SimulationSpec(
+        experiment_id="test_alias",
+        reactor_type="shock_tube",
+        observable="species_profile",
+        observable_species="NH3",
+        temperature=1200.0,
+        pressure=101325.0,
+        composition={"NH3": 0.005, "Ar": 0.995},
+    )
+    aliases = {"NH3": "NH3(1)"}
+
+    # We can't call run_simulation without Cantera, so test the alias logic
+    # by importing and applying the same mapping run_simulation does
+    updates: dict = {"composition": _apply_aliases(spec.composition, aliases)}
+    if spec.observable_species and spec.observable_species in aliases:
+        updates["observable_species"] = aliases[spec.observable_species]
+    mapped = spec.model_copy(update=updates)
+
+    assert mapped.composition == {"NH3(1)": 0.005, "Ar": 0.995}
+    assert mapped.observable_species == "NH3(1)"

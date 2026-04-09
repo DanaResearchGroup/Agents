@@ -93,6 +93,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="LLM configuration file (default: config/llm_config.yaml)",
     )
 
+    # ── search ───────────────────────────────────────
+    search_p = sub.add_parser("search", help="Search for kinetics papers")
+    search_p.add_argument(
+        "query", type=str,
+        help="Search query (e.g. 'HOCHO pyrolysis')",
+    )
+    search_p.add_argument(
+        "--max-results", type=int, default=10,
+        help="Max results per search strategy (default: 10)",
+    )
+    search_p.add_argument(
+        "--snowball", action="store_true",
+        help="Enable citation snowballing on high-priority results",
+    )
+    search_p.add_argument(
+        "--download-si", action="store_true",
+        help="Download supplementary information files",
+    )
+    search_p.add_argument(
+        "--output", type=Path, default=Path("data/papers"),
+        help="Output directory (default: data/papers)",
+    )
+
     return parser
 
 
@@ -173,6 +196,42 @@ def cmd_convert(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def cmd_search(args: argparse.Namespace) -> None:
+    """Search for kinetics papers and print results."""
+    import logging
+    from src.ingestion.registry_builder import RegistryBuilder
+    from src.ingestion.utils import save_registry
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    builder = RegistryBuilder()
+    result = builder.build_registry(
+        query=args.query,
+        download_si=args.download_si,
+        outdir=str(args.output),
+        per_strategy_limit=args.max_results,
+        snowball=args.snowball,
+    )
+
+    save_registry(result, args.output)
+    print(f"\nFound {len(result.papers)} papers. Registry saved to {args.output}/")
+
+    for paper in result.papers:
+        doi_str = f"doi:{paper.doi}" if paper.doi else "(no DOI)"
+        print(f"  {paper.title[:70]}  [{doi_str}]")
+
+    if result.papers:
+        print("\nTo run evaluation on a paper:")
+        for paper in result.papers:
+            if paper.doi:
+                print(f"  chem-agent run --paper doi:{paper.doi} ...")
+                break
+
+
 def main(argv: list[str] | None = None) -> None:
     """Entry point for chem-agent command."""
     parser = build_parser()
@@ -188,6 +247,7 @@ def main(argv: list[str] | None = None) -> None:
         "run": cmd_run,
         "validate-model": cmd_validate_model,
         "convert": cmd_convert,
+        "search": cmd_search,
     }
     commands[args.command](args)
 

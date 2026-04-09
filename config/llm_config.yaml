@@ -1,7 +1,7 @@
 # LLM provider configuration for chem-agent
 #
 # provider options: anthropic, openai, ollama, deepseek, groq
-# For Ollama, set base_url to http://localhost:11434
+# For Ollama, set base_url to http://localhost:11434/v1
 #
 # DeepSeek example:
 #   provider: deepseek

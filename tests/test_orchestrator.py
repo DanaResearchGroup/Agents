@@ -179,6 +179,8 @@ async def test_ingest_upload(make_config, monkeypatch, workspace):
     )
     assert result.title == "Uploaded Paper"
     assert result.provenance == "local_upload"
+    assert result.pdf_path is not None
+    assert result.pdf_path == str(pdf_path.resolve())
 
 
 @pytest.mark.asyncio

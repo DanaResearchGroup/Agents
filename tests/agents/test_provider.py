@@ -124,6 +124,43 @@ def test_deepseek_with_explicit_base_url(mock_model_cls, mock_prov_cls):
     )
 
 
+@patch("src.agents.provider.OpenAIProvider")
+@patch("src.agents.provider.OpenAIModel")
+def test_ollama_strips_prefix(mock_model_cls, mock_prov_cls):
+    cfg = LLMConfig(provider="ollama", model="ollama/llama3.1:8b")
+    make_model(cfg)
+
+    mock_model_cls.assert_called_once_with("llama3.1:8b", provider=mock_prov_cls.return_value)
+
+
+@patch("src.agents.provider.OpenAIProvider")
+@patch("src.agents.provider.OpenAIModel")
+def test_ollama_appends_v1_when_missing(mock_model_cls, mock_prov_cls):
+    cfg = LLMConfig(
+        provider="ollama", model="llama3.1:8b",
+        base_url="http://localhost:11434",
+    )
+    make_model(cfg)
+
+    mock_prov_cls.assert_called_once_with(
+        base_url="http://localhost:11434/v1", api_key="ollama"
+    )
+
+
+@patch("src.agents.provider.OpenAIProvider")
+@patch("src.agents.provider.OpenAIModel")
+def test_ollama_preserves_v1_when_present(mock_model_cls, mock_prov_cls):
+    cfg = LLMConfig(
+        provider="ollama", model="llama3.1:8b",
+        base_url="http://localhost:11434/v1",
+    )
+    make_model(cfg)
+
+    mock_prov_cls.assert_called_once_with(
+        base_url="http://localhost:11434/v1", api_key="ollama"
+    )
+
+
 @patch("src.agents.provider.AnthropicProvider")
 @patch("src.agents.provider.AnthropicModel")
 def test_empty_api_key_treated_as_none(mock_model_cls, mock_prov_cls):

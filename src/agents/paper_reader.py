@@ -8,6 +8,7 @@ mining) consume as context.
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from pydantic_ai import Agent, RunContext
 
@@ -28,26 +29,14 @@ from src.schemas.experimental import PaperDocument, PaperSummary
 
 logger = logging.getLogger(__name__)
 
-_SYSTEM_PROMPT = """\
-You are a combustion chemistry expert reading a kinetics paper.
-Your job is to summarise the experimental setup so other agents
-can extract simulation conditions.
-
-Use the available tools to read the paper systematically:
-1. Start with the abstract
-2. Find the experimental/methods section
-3. List all tables and figures
-4. Identify what reactor was used, what species, what conditions
-
-Be specific about temperature and pressure ranges.
-List all tables that contain experimental conditions.
-Note the species names exactly as written in the paper."""
+_SKILL = (Path(__file__).parent / "skills" / "paper_reader_skill.md").read_text()
 
 paper_reader_agent: Agent[PaperDeps, PaperSummary] = Agent(
     "test",  # placeholder model, overridden at runtime
     deps_type=PaperDeps,
     output_type=PaperSummary,
-    system_prompt=_SYSTEM_PROMPT,
+    system_prompt=_SKILL,
+    output_retries=3,
 )
 
 
@@ -120,7 +109,7 @@ async def read_paper(
         model=model,
     )
 
-    summary = result.data
+    summary = result.output
     logger.info(
         "PaperReaderAgent: %s | T=%s | tables=%d figures=%d",
         summary.reactor_types,

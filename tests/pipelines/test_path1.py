@@ -190,7 +190,7 @@ async def test_happy_path_two_conditions(
 
     call_count = 0
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         nonlocal call_count
         call_count += 1
         # Literature model: simulated IDT closer to measured
@@ -359,7 +359,7 @@ async def test_partial_simulation_failure(
 
     sim_call = 0
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         nonlocal sim_call
         sim_call += 1
         # Fail the first condition's literature run
@@ -396,7 +396,7 @@ async def test_majority_logic_original_better(
     """Original model is better on both conditions → overall_literature_better is False."""
     patches = _patch_all()
 
-    def mock_run_sim(spec, mechanism_file):
+    def mock_run_sim(spec, mechanism_file, **kwargs):
         # Original model closer to measured values
         if "mech.yaml" in mechanism_file:
             return _make_sim_result(spec.experiment_id, 0.01)  # literature: far
@@ -661,3 +661,197 @@ async def test_llm_fallback_passes_evidence(
     assert call_kwargs[1].get("evidence") is not None
     assert len(call_kwargs[1]["evidence"]) == 1
     assert call_kwargs[1]["evidence"][0].kind == "temperature"
+
+
+# ── Test: provided literature model skips SI discovery ───────────────────────
+
+
+@pytest.mark.asyncio
+async def test_literature_model_skips_si_discovery(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+    tmp_path: Path,
+):
+    """When literature_model is provided, _find_mechanism and converter are not called."""
+    from src.schemas.experimental import PaperDocument, PageText
+
+    lit_model = tmp_path / "lit.yaml"
+    lit_model.write_text("phases: []")
+
+    with (
+        patch("src.pipelines.path1._find_mechanism") as mock_find,
+        patch("src.pipelines.path1.ChemkinConverter") as mock_converter_cls,
+        patch(
+            "src.pipelines.path1.ModelIsolationValidator",
+            return_value=MagicMock(validate_path1=MagicMock(return_value=None)),
+        ),
+        patch(
+            "src.pipelines.path1.parse_pdf",
+            return_value=PaperDocument(
+                pdf_path="/tmp/paper.pdf",
+                title="Test",
+                pages=[PageText(page_num=1, text="T=1200K")],
+                captions=[],
+            ),
+        ),
+        patch(
+            "src.pipelines.path1.ConditionExtractionAgent",
+            return_value=MagicMock(extract=AsyncMock(return_value=TWO_CONDITIONS)),
+        ),
+        patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        result = await run_path1(
+            paper, original_model, experimental_data, llm_client,
+            literature_model=lit_model,
+        )
+
+    mock_find.assert_not_called()
+    mock_converter_cls.assert_not_called()
+    assert result.literature_model_path == lit_model
+    assert result.extracted_rates is None
+
+
+# ── Tests: tolerance matching ────────────────────────────────────────────────
+
+
+def _make_dataset(*conditions):
+    """Helper: build an ExperimentalDataset from (T, P) tuples."""
+    return ExperimentalDataset(
+        name="test",
+        conditions=[
+            ExperimentalCondition(
+                reactor_type=ReactorType.SHOCK_TUBE,
+                temperature_K=t,
+                pressure_atm=p,
+                mixture={"H2": 0.5, "O2": 0.5},
+                observable_type=ObservableType.IDT,
+                measured_value=0.001,
+                error_threshold=0.01,
+            )
+            for t, p in conditions
+        ],
+    )
+
+
+def test_match_experimental_exact():
+    """Exact T/P still matches."""
+    from src.pipelines.path1 import _match_experimental
+
+    cond = SimConditions(
+        reactor_type=ReactorType.SHOCK_TUBE, T=1200.0, P=1.0,
+        X={"H2": 0.5}, observable_type=ObservableType.IDT,
+    )
+    ds = _make_dataset((1200.0, 1.0))
+    result = _match_experimental(cond, ds)
+    assert result is not None
+    assert result.temperature_K == 1200.0
+
+
+def test_match_experimental_within_tolerance():
+    """T within 100K and P within 0.15atm matches."""
+    from src.pipelines.path1 import _match_experimental
+
+    cond = SimConditions(
+        reactor_type=ReactorType.SHOCK_TUBE, T=1280.0, P=1.10,
+        X={"H2": 0.5}, observable_type=ObservableType.IDT,
+    )
+    ds = _make_dataset((1200.0, 1.0))
+    result = _match_experimental(cond, ds)
+    assert result is not None
+
+
+def test_match_experimental_outside_tolerance():
+    """T outside 100K does not match."""
+    from src.pipelines.path1 import _match_experimental
+
+    cond = SimConditions(
+        reactor_type=ReactorType.SHOCK_TUBE, T=1350.0, P=1.0,
+        X={"H2": 0.5}, observable_type=ObservableType.IDT,
+    )
+    ds = _make_dataset((1200.0, 1.0))
+    result = _match_experimental(cond, ds)
+    assert result is None
+
+
+def test_match_experimental_p_outside_tolerance():
+    """P outside 0.15atm does not match even if T is close."""
+    from src.pipelines.path1 import _match_experimental
+
+    cond = SimConditions(
+        reactor_type=ReactorType.SHOCK_TUBE, T=1200.0, P=1.20,
+        X={"H2": 0.5}, observable_type=ObservableType.IDT,
+    )
+    ds = _make_dataset((1200.0, 1.0))
+    result = _match_experimental(cond, ds)
+    assert result is None
+
+
+def test_match_experimental_closest_selected():
+    """When multiple candidates are within tolerance, closest wins."""
+    from src.pipelines.path1 import _match_experimental
+
+    cond = SimConditions(
+        reactor_type=ReactorType.SHOCK_TUBE, T=1210.0, P=1.0,
+        X={"H2": 0.5}, observable_type=ObservableType.IDT,
+    )
+    ds = _make_dataset((1200.0, 1.0), (1250.0, 1.0))
+    result = _match_experimental(cond, ds)
+    assert result is not None
+    assert result.temperature_K == 1200.0  # closer to 1210
+
+
+# ── Tests: reactor family filtering ─────────────────────────────────────────
+
+
+def test_filter_by_reactor_family_keeps_matching():
+    """Conditions matching experimental reactor types are kept."""
+    from src.pipelines.path1 import _filter_by_reactor_family
+
+    conditions = [
+        SimConditions(
+            reactor_type=ReactorType.SHOCK_TUBE, T=1200.0, P=1.0,
+            X={"H2": 0.5}, observable_type=ObservableType.IDT,
+        ),
+    ]
+    ds = _make_dataset((1200.0, 1.0))
+    result = _filter_by_reactor_family(conditions, ds)
+    assert len(result) == 1
+
+
+def test_filter_by_reactor_family_drops_wrong_family():
+    """JSR conditions dropped when experimental data is only shock_tube."""
+    from src.pipelines.path1 import _filter_by_reactor_family
+
+    conditions = [
+        SimConditions(
+            reactor_type=ReactorType.SHOCK_TUBE, T=1200.0, P=1.0,
+            X={"H2": 0.5}, observable_type=ObservableType.IDT,
+        ),
+        SimConditions(
+            reactor_type=ReactorType.JSR, T=800.0, P=1.0,
+            X={"H2": 0.5}, observable_type=ObservableType.SPECIES_PROFILE,
+        ),
+    ]
+    ds = _make_dataset((1200.0, 1.0))  # only shock_tube
+    result = _filter_by_reactor_family(conditions, ds)
+    assert len(result) == 1
+    assert result[0].reactor_type == ReactorType.SHOCK_TUBE
+
+
+def test_filter_by_reactor_family_all_dropped():
+    """All conditions dropped when none match experimental reactor types."""
+    from src.pipelines.path1 import _filter_by_reactor_family
+
+    conditions = [
+        SimConditions(
+            reactor_type=ReactorType.JSR, T=800.0, P=1.0,
+            X={"H2": 0.5}, observable_type=ObservableType.SPECIES_PROFILE,
+        ),
+    ]
+    ds = _make_dataset((1200.0, 1.0))  # only shock_tube
+    result = _filter_by_reactor_family(conditions, ds)
+    assert len(result) == 0
