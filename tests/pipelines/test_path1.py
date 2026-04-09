@@ -132,13 +132,6 @@ def _patch_all():
     """Return a dict of patch contexts for all external dependencies."""
     from src.schemas.experimental import ConversionResult, PaperDocument, PageText
 
-    converter_mock = AsyncMock()
-    converter_mock.return_value.convert = AsyncMock(return_value=ConversionResult(
-        success=True,
-        output_path=Path("/tmp/mech.yaml"),
-        attempts=1,
-    ))
-
     converter_instance = MagicMock(
         convert=AsyncMock(return_value=ConversionResult(
             success=True,
@@ -169,8 +162,12 @@ def _patch_all():
             ),
         ),
         "extract": patch(
-            "src.pipelines.path1.ConditionExtractionAgent",
-            return_value=MagicMock(extract=AsyncMock(return_value=TWO_CONDITIONS)),
+            "src.pipelines.path1.extract_conditions",
+            new=AsyncMock(return_value=TWO_CONDITIONS),
+        ),
+        "model_species": patch(
+            "src.pipelines.path1._get_model_species",
+            return_value=["H2", "O2", "H2O"],
         ),
     }
 
@@ -204,6 +201,7 @@ async def test_happy_path_two_conditions(
         patches["validator_cls"],
         patches["parse_pdf"],
         patches["extract"],
+        patches["model_species"],
         patch("src.pipelines.path1.run_simulation", side_effect=mock_run_sim),
     ):
         from src.pipelines.path1 import run_path1
@@ -229,7 +227,7 @@ async def test_no_si_mechanism(
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
 ):
-    """Paper has no si_path → ValueError."""
+    """Paper has no si_path -> ValueError."""
     paper = PaperRecord(id="no-si", title="No SI")
 
     from src.pipelines.path1 import run_path1
@@ -248,7 +246,7 @@ async def test_conversion_failure(
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
 ):
-    """ChemkinConverter fails → ValueError."""
+    """ChemkinConverter fails -> ValueError."""
     from src.schemas.experimental import ConversionResult
 
     with patch(
@@ -311,7 +309,7 @@ async def test_no_conditions_extracted(
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
 ):
-    """Extraction returns empty list → ValueError."""
+    """Both agent and fallback return empty -> ValueError."""
     from src.schemas.experimental import ConversionResult, PaperDocument, PageText
 
     with (
@@ -334,8 +332,16 @@ async def test_no_conditions_extracted(
             ),
         ),
         patch(
-            "src.pipelines.path1.ConditionExtractionAgent",
-            return_value=MagicMock(extract=AsyncMock(return_value=[])),
+            "src.pipelines.path1.extract_conditions",
+            new=AsyncMock(return_value=[]),
+        ),
+        patch(
+            "src.pipelines.path1._get_model_species",
+            return_value=[],
+        ),
+        patch(
+            "src.pipelines.path1.PaperExtractionPipeline",
+            return_value=MagicMock(extract=MagicMock(return_value=[])),
         ),
     ):
         from src.pipelines.path1 import run_path1
@@ -372,6 +378,7 @@ async def test_partial_simulation_failure(
         patches["validator_cls"],
         patches["parse_pdf"],
         patches["extract"],
+        patches["model_species"],
         patch("src.pipelines.path1.run_simulation", side_effect=mock_run_sim),
     ):
         from src.pipelines.path1 import run_path1
@@ -393,7 +400,7 @@ async def test_majority_logic_original_better(
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
 ):
-    """Original model is better on both conditions → overall_literature_better is False."""
+    """Original model is better on both conditions -> overall_literature_better is False."""
     patches = _patch_all()
 
     def mock_run_sim(spec, mechanism_file, **kwargs):
@@ -407,6 +414,7 @@ async def test_majority_logic_original_better(
         patches["validator_cls"],
         patches["parse_pdf"],
         patches["extract"],
+        patches["model_species"],
         patch("src.pipelines.path1.run_simulation", side_effect=mock_run_sim),
     ):
         from src.pipelines.path1 import run_path1
@@ -493,82 +501,159 @@ def _pipeline_patches(plans: list[SimulationPlan]):
                 captions=[],
             ),
         ),
-        "pipeline": patch(
-            "src.pipelines.path1.PaperExtractionPipeline",
-            return_value=MagicMock(
-                extract=MagicMock(return_value=plans),
-                last_evidence=[],
-            ),
+        "model_species": patch(
+            "src.pipelines.path1._get_model_species",
+            return_value=["H2", "O2"],
         ),
     }
 
 
-# ── Test: deterministic pipeline returns conditions → LLM not called ─────────
+# ── Test: agent returns conditions -> deterministic fallback NOT called ──────
 
 
 @pytest.mark.asyncio
-async def test_deterministic_pipeline_skips_llm(
+async def test_agent_returns_conditions_skips_fallback(
     paper: PaperRecord,
     original_model: Path,
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
 ):
-    """When deterministic pipeline returns conditions, LLM agent is NOT called."""
-    plans = [_make_executable_plan()]
-    pp = _pipeline_patches(plans)
+    """When ConditionReasoningAgent returns conditions, deterministic fallback is skipped."""
+    pp = _pipeline_patches([])
 
-    llm_agent_cls = MagicMock()
+    pipeline_cls = MagicMock()
 
     with (
         pp["converter_cls"],
         pp["validator_cls"],
         pp["parse_pdf"],
-        pp["pipeline"],
-        patch("src.pipelines.path1.ConditionExtractionAgent", llm_agent_cls),
+        pp["model_species"],
+        patch(
+            "src.pipelines.path1.extract_conditions",
+            new=AsyncMock(return_value=TWO_CONDITIONS),
+        ),
+        patch("src.pipelines.path1.PaperExtractionPipeline", pipeline_cls),
         patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
     ):
         from src.pipelines.path1 import run_path1
 
         result = await run_path1(paper, original_model, experimental_data, llm_client)
 
-    # LLM agent class should never be instantiated
-    llm_agent_cls.assert_not_called()
+    # Deterministic pipeline should NOT be instantiated (agent succeeded)
+    pipeline_cls.assert_not_called()
     assert result.conditions_tested >= 1
 
 
-# ── Test: deterministic pipeline empty → LLM fallback called ─────────────────
+# ── Test: agent returns empty -> deterministic fallback called ───────────────
 
 
 @pytest.mark.asyncio
-async def test_deterministic_empty_triggers_llm_fallback(
+async def test_agent_empty_triggers_deterministic_fallback(
     paper: PaperRecord,
     original_model: Path,
     experimental_data: ExperimentalDataset,
     llm_client: LLMClient,
 ):
-    """When deterministic pipeline returns [], LLM extraction is called as fallback."""
-    pp = _pipeline_patches([])  # empty plans
+    """When agent returns [], deterministic pipeline runs as fallback."""
+    plans = [_make_executable_plan()]
 
-    llm_extract_mock = AsyncMock(return_value=TWO_CONDITIONS)
-    llm_agent_instance = MagicMock(extract=llm_extract_mock)
-    llm_agent_cls = MagicMock(return_value=llm_agent_instance)
+    pp = _pipeline_patches(plans)
+    pipeline_mock = MagicMock(
+        extract=MagicMock(return_value=plans),
+    )
 
     with (
         pp["converter_cls"],
         pp["validator_cls"],
         pp["parse_pdf"],
-        pp["pipeline"],
-        patch("src.pipelines.path1.ConditionExtractionAgent", llm_agent_cls),
+        pp["model_species"],
+        patch(
+            "src.pipelines.path1.extract_conditions",
+            new=AsyncMock(return_value=[]),
+        ),
+        patch(
+            "src.pipelines.path1.PaperExtractionPipeline",
+            return_value=pipeline_mock,
+        ),
         patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
     ):
         from src.pipelines.path1 import run_path1
 
         result = await run_path1(paper, original_model, experimental_data, llm_client)
 
-    # LLM agent should have been instantiated and called
-    llm_agent_cls.assert_called_once_with(llm_client)
-    llm_extract_mock.assert_awaited_once()
-    assert result.conditions_tested == 2
+    # Pipeline was used as fallback
+    pipeline_mock.extract.assert_called_once()
+    assert result.conditions_tested >= 1
+
+
+# ── Test: model_species passed to agent ──────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_model_species_passed_to_agent(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+):
+    """model_species from _get_model_species is passed to extract_conditions."""
+    pp = _pipeline_patches([])
+
+    extract_mock = AsyncMock(return_value=TWO_CONDITIONS)
+
+    with (
+        pp["converter_cls"],
+        pp["validator_cls"],
+        pp["parse_pdf"],
+        patch("src.pipelines.path1._get_model_species", return_value=["H2", "O2", "N2"]),
+        patch("src.pipelines.path1.extract_conditions", new=extract_mock),
+        patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        await run_path1(paper, original_model, experimental_data, llm_client)
+
+    # Verify model_species was passed
+    call_kwargs = extract_mock.call_args
+    assert call_kwargs.kwargs["model_species"] == ["H2", "O2", "N2"]
+
+
+# ── Test: paper_summary passed when available ────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_paper_summary_passed_to_agent(
+    paper: PaperRecord,
+    original_model: Path,
+    experimental_data: ExperimentalDataset,
+    llm_client: LLMClient,
+):
+    """paper_summary is forwarded to extract_conditions."""
+    from src.schemas.experimental import PaperSummary
+
+    pp = _pipeline_patches([])
+    summary = PaperSummary(reactor_types=["shock_tube"])
+
+    extract_mock = AsyncMock(return_value=TWO_CONDITIONS)
+
+    with (
+        pp["converter_cls"],
+        pp["validator_cls"],
+        pp["parse_pdf"],
+        pp["model_species"],
+        patch("src.pipelines.path1.extract_conditions", new=extract_mock),
+        patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
+    ):
+        from src.pipelines.path1 import run_path1
+
+        await run_path1(
+            paper, original_model, experimental_data, llm_client,
+            paper_summary=summary,
+        )
+
+    call_kwargs = extract_mock.call_args
+    assert call_kwargs.kwargs["paper_summary"] is not None
+    assert call_kwargs.kwargs["paper_summary"].reactor_types == ["shock_tube"]
 
 
 # ── Test: deduplication removes identical conditions ─────────────────────────
@@ -599,68 +684,10 @@ def test_deduplication_removes_identical_conditions():
         ),
     ]
     result = _deduplicate_conditions(conditions)
-    # First two share (SHOCK_TUBE, 1200.0, 1.0, IDT) → one kept
+    # First two share (SHOCK_TUBE, 1200.0, 1.0, IDT) -> one kept
     assert len(result) == 2
     assert result[0].T == 1200.0
     assert result[1].T == 1400.0
-
-
-# ── Test: LLM fallback receives evidence from deterministic pipeline ─────────
-
-
-@pytest.mark.asyncio
-async def test_llm_fallback_passes_evidence(
-    paper: PaperRecord,
-    original_model: Path,
-    experimental_data: ExperimentalDataset,
-    llm_client: LLMClient,
-):
-    """When deterministic pipeline returns [], evidence snippets are forwarded to LLM agent."""
-    from src.schemas.experimental import EvidenceSnippet
-
-    fake_evidence = [
-        EvidenceSnippet(
-            kind="temperature",
-            value_text="1200 K",
-            page_num=1,
-            source_text="Experiments at 1200 K",
-            confidence=0.9,
-        ),
-    ]
-
-    pp = _pipeline_patches([])  # empty plans → triggers LLM fallback
-    # Override mock pipeline to carry evidence
-    pipeline_mock = MagicMock(
-        extract=MagicMock(return_value=[]),
-        last_evidence=fake_evidence,
-    )
-    pp["pipeline"] = patch(
-        "src.pipelines.path1.PaperExtractionPipeline",
-        return_value=pipeline_mock,
-    )
-
-    llm_extract_mock = AsyncMock(return_value=TWO_CONDITIONS)
-    llm_agent_instance = MagicMock(extract=llm_extract_mock)
-    llm_agent_cls = MagicMock(return_value=llm_agent_instance)
-
-    with (
-        pp["converter_cls"],
-        pp["validator_cls"],
-        pp["parse_pdf"],
-        pp["pipeline"],
-        patch("src.pipelines.path1.ConditionExtractionAgent", llm_agent_cls),
-        patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
-    ):
-        from src.pipelines.path1 import run_path1
-
-        await run_path1(paper, original_model, experimental_data, llm_client)
-
-    # Verify evidence was passed (not None)
-    llm_extract_mock.assert_awaited_once()
-    call_kwargs = llm_extract_mock.call_args
-    assert call_kwargs[1].get("evidence") is not None
-    assert len(call_kwargs[1]["evidence"]) == 1
-    assert call_kwargs[1]["evidence"][0].kind == "temperature"
 
 
 # ── Test: provided literature model skips SI discovery ───────────────────────
@@ -697,9 +724,10 @@ async def test_literature_model_skips_si_discovery(
             ),
         ),
         patch(
-            "src.pipelines.path1.ConditionExtractionAgent",
-            return_value=MagicMock(extract=AsyncMock(return_value=TWO_CONDITIONS)),
+            "src.pipelines.path1.extract_conditions",
+            new=AsyncMock(return_value=TWO_CONDITIONS),
         ),
+        patch("src.pipelines.path1._get_model_species", return_value=[]),
         patch("src.pipelines.path1.run_simulation", return_value=_make_sim_result("x", 0.001)),
     ):
         from src.pipelines.path1 import run_path1

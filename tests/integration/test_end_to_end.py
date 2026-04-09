@@ -198,13 +198,16 @@ class TestPath1EndToEnd:
 
         patches = _patch_ingestion_and_conversion(paper, document)
 
-        # Mock ConditionExtractionAgent.extract (LLM fallback)
+        # Mock extract_conditions (ConditionReasoningAgent)
         patches.append(
             patch(
-                "src.pipelines.path1.ConditionExtractionAgent.extract",
+                "src.pipelines.path1.extract_conditions",
                 new_callable=AsyncMock,
                 return_value=mock_conditions,
             ),
+        )
+        patches.append(
+            patch("src.pipelines.path1._get_model_species", return_value=[]),
         )
 
         # Mock LLMClient constructor (orchestrator creates one)
@@ -262,13 +265,16 @@ class TestPath1EndToEnd:
             paper, document, lit_model_path=SIMPLE_MODEL
         )
 
-        # Mock LLM fallback (won't be reached, but needed for setup)
+        # Mock condition extraction (won't be reached, but needed for setup)
         patches.append(
             patch(
-                "src.pipelines.path1.ConditionExtractionAgent.extract",
+                "src.pipelines.path1.extract_conditions",
                 new_callable=AsyncMock,
                 return_value=[],
             ),
+        )
+        patches.append(
+            patch("src.pipelines.path1._get_model_species", return_value=[]),
         )
         patches.append(
             patch("src.orchestrator.LLMClient"),
@@ -431,10 +437,13 @@ class TestReportStructure:
         ]
         patches.append(
             patch(
-                "src.pipelines.path1.ConditionExtractionAgent.extract",
+                "src.pipelines.path1.extract_conditions",
                 new_callable=AsyncMock,
                 return_value=mock_conditions,
             ),
+        )
+        patches.append(
+            patch("src.pipelines.path1._get_model_species", return_value=[]),
         )
 
         # Path 2 mocks
@@ -573,10 +582,13 @@ class TestUploadIngestion:
         ]
         patches.append(
             patch(
-                "src.pipelines.path1.ConditionExtractionAgent.extract",
+                "src.pipelines.path1.extract_conditions",
                 new_callable=AsyncMock,
                 return_value=mock_conditions,
             ),
+        )
+        patches.append(
+            patch("src.pipelines.path1._get_model_species", return_value=[]),
         )
         patches.append(patch("src.orchestrator.LLMClient"))
 

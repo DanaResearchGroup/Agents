@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Sequence
+
+from pydantic_ai.messages import ModelMessage
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.models.openai import OpenAIModel
@@ -10,6 +13,32 @@ from pydantic_ai.providers.groq import GroqProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from src.agents.llm_client import LLMConfig
+
+
+class _OllamaModel(OpenAIModel):
+    """OpenAI-compatible model that sanitizes null content for Ollama.
+
+    We hit Ollama's ``/v1/chat/completions`` endpoint (OpenAI-compatible
+    format), not the native ``/api/chat`` endpoint.  PydanticAI sets
+    ``content = None`` on assistant messages that only contain tool
+    calls (no text).  This is valid per the OpenAI spec, but Ollama's
+    /v1 compatibility layer rejects it with
+    ``invalid message content type: <nil>``.
+
+    Fix: remove the ``content`` key entirely from messages where it
+    is ``None``.  Ollama accepts the key being absent.
+    """
+
+    async def _map_messages(
+        self,
+        messages: Sequence[ModelMessage],
+        model_request_parameters: object,
+    ) -> list[dict]:
+        mapped = await super()._map_messages(messages, model_request_parameters)  # type: ignore[arg-type]
+        for msg in mapped:
+            if "content" in msg and msg["content"] is None:
+                del msg["content"]
+        return mapped
 
 # Providers that use the OpenAI-compatible API with a custom base_url.
 _OPENAI_COMPAT_DEFAULTS: dict[str, str] = {
@@ -60,6 +89,9 @@ def make_model(
         model_name = model_name.removeprefix("ollama/")
         if base_url and not base_url.rstrip("/").endswith("/v1"):
             base_url = base_url.rstrip("/") + "/v1"
+
+        prov = OpenAIProvider(base_url=base_url, api_key=api_key)
+        return _OllamaModel(model_name, provider=prov)
 
     prov = OpenAIProvider(base_url=base_url, api_key=api_key)
     return OpenAIModel(model_name, provider=prov)

@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from src.agents.llm_client import LLMConfig
-from src.agents.provider import make_model
+from src.agents.provider import _OllamaModel, make_model
 
 
 @patch("src.agents.provider.AnthropicProvider")
@@ -44,7 +44,7 @@ def test_deepseek_config(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider._OllamaModel")
 def test_ollama_config(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(provider="ollama", model="llama3.1:8b")
     result = make_model(cfg)
@@ -57,7 +57,7 @@ def test_ollama_config(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider._OllamaModel")
 def test_ollama_preserves_explicit_api_key(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(provider="ollama", model="llama3.1:8b", api_key="custom-key")
     make_model(cfg)
@@ -125,7 +125,7 @@ def test_deepseek_with_explicit_base_url(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider._OllamaModel")
 def test_ollama_strips_prefix(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(provider="ollama", model="ollama/llama3.1:8b")
     make_model(cfg)
@@ -134,7 +134,7 @@ def test_ollama_strips_prefix(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider._OllamaModel")
 def test_ollama_appends_v1_when_missing(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(
         provider="ollama", model="llama3.1:8b",
@@ -148,7 +148,7 @@ def test_ollama_appends_v1_when_missing(mock_model_cls, mock_prov_cls):
 
 
 @patch("src.agents.provider.OpenAIProvider")
-@patch("src.agents.provider.OpenAIModel")
+@patch("src.agents.provider._OllamaModel")
 def test_ollama_preserves_v1_when_present(mock_model_cls, mock_prov_cls):
     cfg = LLMConfig(
         provider="ollama", model="llama3.1:8b",
@@ -168,3 +168,40 @@ def test_empty_api_key_treated_as_none(mock_model_cls, mock_prov_cls):
     make_model(cfg)
 
     mock_prov_cls.assert_called_once_with(api_key=None, base_url=None)
+
+
+def test_ollama_model_is_ollama_subclass():
+    """Ollama provider returns _OllamaModel, not plain OpenAIModel."""
+    with (
+        patch("src.agents.provider.OpenAIProvider"),
+        patch("src.agents.provider._OllamaModel") as mock_cls,
+    ):
+        cfg = LLMConfig(provider="ollama", model="qwen2.5:7b-instruct")
+        make_model(cfg)
+        mock_cls.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_ollama_model_removes_null_content():
+    """_OllamaModel removes content key when it is None."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    model = MagicMock(spec=_OllamaModel)
+    # Simulate parent _map_messages returning messages with None content
+    parent_result = [
+        {"role": "system", "content": "You are helpful."},
+        {"role": "assistant", "content": None, "tool_calls": [{"id": "1", "function": {"name": "get_evidence"}}]},
+        {"role": "tool", "content": "Page 1: T=1200K", "tool_call_id": "1"},
+    ]
+    # Call the real _map_messages with a mocked super()
+    with patch.object(
+        _OllamaModel.__mro__[1], "_map_messages",
+        new=AsyncMock(return_value=parent_result),
+    ):
+        result = await _OllamaModel._map_messages(model, messages=[], model_request_parameters=MagicMock())
+
+    # Null content key removed entirely
+    assert result[0]["content"] == "You are helpful."
+    assert "content" not in result[1]
+    assert result[1]["tool_calls"] == [{"id": "1", "function": {"name": "get_evidence"}}]
+    assert result[2]["content"] == "Page 1: T=1200K"

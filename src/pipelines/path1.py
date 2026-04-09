@@ -8,7 +8,7 @@ the user's original model.
 import logging
 from pathlib import Path
 
-from src.agents.condition_extraction import ConditionExtractionAgent
+from src.agents.condition_reasoning import extract_conditions
 from src.agents.conversion import ChemkinConverter
 from src.agents.llm_client import LLMClient
 from src.agents.validators import ModelIsolationValidator
@@ -19,6 +19,7 @@ from src.schemas.experimental import (
     ExperimentalDataset,
     MAEResult,
     ObservableType,
+    PaperSummary,
     Path1Results,
     ReactorType,
     SimConditions,
@@ -30,6 +31,13 @@ from src.simulation.core.runner import SimulationResult, run_simulation
 from src.simulation.core.simulation_spec import SimulationSpec
 
 logger = logging.getLogger(__name__)
+
+try:
+    import cantera as ct
+    _HAS_CANTERA = True
+except ImportError:
+    ct = None  # type: ignore[assignment]
+    _HAS_CANTERA = False
 
 # Mapping from schema enums to SimulationSpec Literal values
 _REACTOR_MAP: dict[ReactorType, str] = {
@@ -66,6 +74,22 @@ _OBS_TO_ENUM: dict[str, ObservableType] = {
     "flame_speed": ObservableType.FLAME_SPEED,
     "extinction_strain_rate": ObservableType.K_EXT,
 }
+
+
+def _get_model_species(model_path: Path) -> list[str]:
+    """Load species names from a Cantera model file.
+
+    Returns an empty list if Cantera is not installed (e.g. in tests).
+    """
+    if not _HAS_CANTERA:
+        logger.debug("Cantera not available, skipping model species loading")
+        return []
+    try:
+        gas = ct.Solution(str(model_path))
+        return list(gas.species_names)
+    except Exception as e:
+        logger.warning("Could not load model species from %s: %s", model_path, e)
+        return []
 
 
 def _plan_to_conditions(plan: SimulationPlan) -> SimConditions | None:
@@ -273,6 +297,7 @@ async def run_path1(
     llm_client: LLMClient,
     literature_model: Path | None = None,
     species_aliases: dict[str, str] | None = None,
+    paper_summary: PaperSummary | None = None,
 ) -> Path1Results:
     """Execute the full Path 1 pipeline: literature model evaluation.
 
@@ -311,25 +336,29 @@ async def run_path1(
     # ── Step 4: Extract conditions ───────────────────────────────────────
     document = parse_pdf(paper.pdf_path)
 
-    # Stage 1: deterministic pipeline
-    pipeline = PaperExtractionPipeline()
-    plans = pipeline.extract(document)
-    conditions: list[SimConditions] = []
-    for plan in plans:
-        cond = _plan_to_conditions(plan)
-        if cond is not None:
-            conditions.append(cond)
-    logger.info("Deterministic pipeline: %d conditions", len(conditions))
+    # Stage 1: ConditionReasoningAgent (always runs, calls deterministic
+    # pipeline internally via tools)
+    conditions = await extract_conditions(
+        paper=document,
+        config=llm_client.config,
+        model_species=_get_model_species(original_model),
+        paper_summary=paper_summary,
+    )
+    logger.info("ConditionReasoningAgent: %d conditions", len(conditions))
 
-    # Stage 2: LLM fallback (only if deterministic pipeline returns zero)
+    # Stage 2: deterministic fallback (only if agent returns zero)
     if not conditions:
         logger.warning(
-            "Deterministic pipeline returned 0 conditions, "
-            "falling back to LLM extraction"
+            "ConditionReasoningAgent returned 0 conditions, "
+            "falling back to deterministic pipeline directly"
         )
-        agent = ConditionExtractionAgent(llm_client)
-        evidence = pipeline.last_evidence or None
-        conditions = await agent.extract(document, evidence=evidence)
+        pipeline = PaperExtractionPipeline()
+        plans = pipeline.extract(document)
+        for plan in plans:
+            cond = _plan_to_conditions(plan)
+            if cond is not None:
+                conditions.append(cond)
+        logger.info("Deterministic fallback: %d conditions", len(conditions))
 
     # Deduplicate by (reactor_type, T, P, observable_type)
     conditions = _deduplicate_conditions(conditions)

@@ -437,3 +437,18 @@ function calls between pipeline stages.
   
 **Keeps:** All of src/simulation/, src/ingestion/, src/schemas/
 ---
+
+
+## 2026-04-09 — OllamaModel subclass for null content handling
+
+**Decision:** Created _OllamaModel(OpenAIModel) subclass in 
+src/agents/provider.py that overrides _map_messages() to 
+replace None content → "" on assistant messages.
+
+**Reason:** Ollama rejects null content in tool-call-only 
+assistant messages. OpenAI spec allows null here; Ollama does not.
+PydanticAI correctly sets content=None per OpenAI spec, but 
+Ollama returns 400 "invalid message content type: <nil>".
+
+**Scope:** Only affects ollama provider. All other providers 
+use standard model classes unchanged.
