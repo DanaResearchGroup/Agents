@@ -217,3 +217,162 @@ def test_intake_sentence_no_llm(mock_clients):
     assert brief.raw_sentence == "H2/O2 ignition delay is too fast"
     assert len(brief.keywords) > 0
     assert brief.case_id.startswith("case_")
+
+
+# ── ZIP mechanism extraction ─────────────────────────────────────────────────
+
+import zipfile
+import io
+
+
+def _create_zip(files: dict[str, bytes]) -> bytes:
+    """Create an in-memory ZIP with the given filename→content mapping."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        for name, content in files.items():
+            zf.writestr(name, content)
+    return buf.getvalue()
+
+
+def test_extract_mechanism_from_zip_direct_inp(mock_clients, tmp_path):
+    """ZIP with a direct .inp file extracts it."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    zip_bytes = _create_zip({"mechanism.inp": b"ELEMENTS\nH O\nEND"})
+    zip_path = tmp_path / "si.zip"
+    zip_path.write_bytes(zip_bytes)
+
+    builder = RegistryBuilder()
+    found = builder._extract_mechanism_from_zip(zip_path, tmp_path / "out")
+
+    assert len(found) == 1
+    assert found[0].suffix == ".inp"
+    assert found[0].exists()
+
+
+def test_extract_mechanism_from_zip_nested_zip(mock_clients, tmp_path):
+    """ZIP containing a nested ZIP with .inp extracts recursively."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    inner_zip = _create_zip({"mech/chem.dat": b"SPECIES\nH2 O2\nEND"})
+    outer_zip = _create_zip({"supplement.zip": inner_zip})
+    zip_path = tmp_path / "si.zip"
+    zip_path.write_bytes(outer_zip)
+
+    builder = RegistryBuilder()
+    found = builder._extract_mechanism_from_zip(zip_path, tmp_path / "out")
+
+    assert len(found) == 1
+    assert found[0].suffix == ".dat"
+
+
+def test_extract_mechanism_from_zip_images_only(mock_clients, tmp_path):
+    """ZIP with only images returns empty list."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    zip_bytes = _create_zip({
+        "figure1.png": b"\x89PNG",
+        "figure2.jpg": b"\xff\xd8",
+        "readme.pdf": b"%PDF",
+    })
+    zip_path = tmp_path / "si.zip"
+    zip_path.write_bytes(zip_bytes)
+
+    builder = RegistryBuilder()
+    found = builder._extract_mechanism_from_zip(zip_path, tmp_path / "out")
+
+    assert found == []
+
+
+def test_extract_mechanism_from_zip_txt_with_chemkin_keywords(mock_clients, tmp_path):
+    """TXT file containing ELEMENTS keyword is extracted as Chemkin."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    zip_bytes = _create_zip({
+        "mechanism.txt": b"ELEMENTS\nH O N\nEND\nSPECIES\nH2 O2 NH3\nEND",
+    })
+    zip_path = tmp_path / "si.zip"
+    zip_path.write_bytes(zip_bytes)
+
+    builder = RegistryBuilder()
+    found = builder._extract_mechanism_from_zip(zip_path, tmp_path / "out")
+
+    assert len(found) == 1
+    assert found[0].name == "mechanism.txt"
+
+
+def test_extract_mechanism_from_zip_depth_2(mock_clients, tmp_path):
+    """ZIP → ZIP → ZIP → .inp extracts through 2 levels of nesting."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    innermost = _create_zip({"deep/mech.inp": b"REACTIONS\nH+O2=OH+O\nEND"})
+    middle = _create_zip({"level2.zip": innermost})
+    outer = _create_zip({"level1.zip": middle})
+    zip_path = tmp_path / "si.zip"
+    zip_path.write_bytes(outer)
+
+    builder = RegistryBuilder()
+    found = builder._extract_mechanism_from_zip(zip_path, tmp_path / "out")
+
+    assert len(found) == 1
+    assert found[0].suffix == ".inp"
+
+
+def test_select_best_mechanism_prefers_cantera(mock_clients):
+    """Cantera YAML is preferred over Chemkin .inp."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    record = _make_record()
+    record.mechanism_files = [
+        "/tmp/mech.inp",
+        "/tmp/chem.dat",
+        "/tmp/model.yaml",
+    ]
+    RegistryBuilder._select_best_mechanism(record)
+
+    assert record.best_mechanism_path == "/tmp/model.yaml"
+    assert record.mechanism_format == "cantera"
+
+
+def test_select_best_mechanism_falls_back_to_chemkin(mock_clients):
+    """When no Cantera file, select Chemkin."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    record = _make_record()
+    record.mechanism_files = ["/tmp/mech.inp", "/tmp/therm.dat"]
+    RegistryBuilder._select_best_mechanism(record)
+
+    assert record.best_mechanism_path == "/tmp/mech.inp"
+    assert record.mechanism_format == "chemkin"
+
+
+def test_select_best_mechanism_skips_cti(mock_clients):
+    """Deprecated .cti files are not selected as best."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    record = _make_record()
+    record.mechanism_files = ["/tmp/old_model.cti"]
+    RegistryBuilder._select_best_mechanism(record)
+
+    assert record.best_mechanism_path is None
+    assert record.mechanism_format is None
+
+
+def test_download_si_wires_zip_extraction(mock_clients, tmp_path):
+    """_download_si_files calls _extract_mechanism_from_zip for ZIPs."""
+    from src.ingestion.registry_builder import RegistryBuilder
+
+    zip_bytes = _create_zip({"mech.yaml": b"phases:\n- name: gas"})
+    zip_path = tmp_path / "test_si.zip"
+    zip_path.write_bytes(zip_bytes)
+
+    record = _make_record()
+    record.si_links = ["https://example.com/si.zip"]
+
+    with patch("src.ingestion.registry_builder.download_file", return_value=zip_path):
+        builder = RegistryBuilder()
+        builder._download_si_files(record, tmp_path)
+
+    assert len(record.mechanism_files) == 1
+    assert record.best_mechanism_path is not None
+    assert record.mechanism_format == "cantera"

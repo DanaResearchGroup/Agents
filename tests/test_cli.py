@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.cli import build_parser, cmd_convert, cmd_run, cmd_validate_model, main, parse_paper_source
+from src.cli import build_parser, cmd_convert, cmd_mae, cmd_run, cmd_validate_model, main, parse_paper_source
 from src.schemas.experimental import ConversionResult, PaperSource
 
 
@@ -226,3 +226,217 @@ class TestCmdConvert:
         with pytest.raises(SystemExit) as exc:
             cmd_convert(args)
         assert exc.value.code == 1
+
+
+# ── mae subparser ────────────────────────────────
+
+
+class TestMaeParser:
+    def test_mae_parses_all_args(self):
+        parser = build_parser()
+        args = parser.parse_args([
+            "mae",
+            "--model", "data/models/m.yaml",
+            "--experiment", "data/experimental/e.yaml",
+            "--end-time", "0.5",
+        ])
+        assert args.command == "mae"
+        assert args.model == Path("data/models/m.yaml")
+        assert args.experiment == Path("data/experimental/e.yaml")
+        assert args.end_time == 0.5
+
+    def test_mae_defaults(self):
+        parser = build_parser()
+        args = parser.parse_args([
+            "mae",
+            "--model", "m.yaml",
+            "--experiment", "e.yaml",
+        ])
+        assert args.end_time == 1.0
+
+    def test_mae_missing_required(self):
+        parser = build_parser()
+        with pytest.raises(SystemExit):
+            parser.parse_args(["mae", "--model", "m.yaml"])
+
+
+# ── cmd_mae ──────────────────────────────────────
+
+
+class TestCmdMae:
+    @patch("src.simulation.core.runner.run_simulation")
+    def test_species_profile_pass(self, mock_run, capsys, tmp_path):
+        """Single condition, simulated == measured -> MAE=0 -> PASS."""
+        from src.simulation.core.runner import SimulationResult
+
+        mock_run.return_value = SimulationResult(
+            experiment_id="test_0",
+            mechanism="m.yaml",
+            species_histories={"CO2(12)": [0.0, 0.0005, 0.001522]},
+            times=[0.0, 0.5, 1.0],
+        )
+
+        exp_yaml = tmp_path / "exp.yaml"
+        exp_yaml.write_text(
+            "name: test\n"
+            "conditions:\n"
+            "  - reactor_type: shock_tube\n"
+            "    temperature_K: 1400.0\n"
+            "    pressure_atm: 1.5\n"
+            "    mixture:\n"
+            "      Ar: 0.99\n"
+            "    observable_type: species_profile\n"
+            "    observable_label: 'CO2(12)'\n"
+            "    measured_value: 0.001522\n"
+            "    error_threshold: 0.0005\n"
+        )
+
+        parser = build_parser()
+        args = parser.parse_args([
+            "mae", "--model", "m.yaml", "--experiment", str(exp_yaml),
+        ])
+        from src.cli import _resolve_paths
+        _resolve_paths(args)
+
+        cmd_mae(args)
+
+        out = capsys.readouterr().out
+        assert "T=1400.0K" in out
+        assert "PASS" in out
+        assert "MAE=0.000000" in out
+        assert "1/1 conditions pass threshold" in out
+
+    @patch("src.simulation.core.runner.run_simulation")
+    def test_species_profile_fail(self, mock_run, capsys, tmp_path):
+        """Simulated far from measured -> FAIL."""
+        from src.simulation.core.runner import SimulationResult
+
+        mock_run.return_value = SimulationResult(
+            experiment_id="test_0",
+            mechanism="m.yaml",
+            species_histories={"CO2(12)": [0.0, 0.01, 0.05]},
+            times=[0.0, 0.5, 1.0],
+        )
+
+        exp_yaml = tmp_path / "exp.yaml"
+        exp_yaml.write_text(
+            "name: test\n"
+            "conditions:\n"
+            "  - reactor_type: shock_tube\n"
+            "    temperature_K: 1400.0\n"
+            "    pressure_atm: 1.5\n"
+            "    mixture:\n"
+            "      Ar: 0.99\n"
+            "    observable_type: species_profile\n"
+            "    observable_label: 'CO2(12)'\n"
+            "    measured_value: 0.001522\n"
+            "    error_threshold: 0.0005\n"
+        )
+
+        parser = build_parser()
+        args = parser.parse_args([
+            "mae", "--model", "m.yaml", "--experiment", str(exp_yaml),
+        ])
+        from src.cli import _resolve_paths
+        _resolve_paths(args)
+
+        cmd_mae(args)
+
+        out = capsys.readouterr().out
+        assert "FAIL" in out
+        assert "0/1 conditions pass threshold" in out
+
+    @patch("src.simulation.core.runner.run_simulation")
+    def test_simulation_error_printed(self, mock_run, capsys, tmp_path):
+        """When simulation fails, print ERROR line."""
+        from src.simulation.core.runner import SimulationResult
+
+        mock_run.return_value = SimulationResult(
+            experiment_id="test_0",
+            mechanism="m.yaml",
+            success=False,
+            error="Species not found",
+        )
+
+        exp_yaml = tmp_path / "exp.yaml"
+        exp_yaml.write_text(
+            "name: test\n"
+            "conditions:\n"
+            "  - reactor_type: shock_tube\n"
+            "    temperature_K: 1400.0\n"
+            "    pressure_atm: 1.5\n"
+            "    mixture:\n"
+            "      Ar: 0.99\n"
+            "    observable_type: species_profile\n"
+            "    observable_label: 'CO2(12)'\n"
+            "    measured_value: 0.001522\n"
+            "    error_threshold: 0.0005\n"
+        )
+
+        parser = build_parser()
+        args = parser.parse_args([
+            "mae", "--model", "m.yaml", "--experiment", str(exp_yaml),
+        ])
+        from src.cli import _resolve_paths
+        _resolve_paths(args)
+
+        cmd_mae(args)
+
+        out = capsys.readouterr().out
+        assert "ERROR" in out
+        assert "Species not found" in out
+        assert "0/1 conditions pass threshold" in out
+
+    @patch("src.simulation.core.runner.run_simulation")
+    def test_multiple_conditions(self, mock_run, capsys, tmp_path):
+        """Two conditions: one PASS, one FAIL."""
+        from src.simulation.core.runner import SimulationResult
+
+        mock_run.side_effect = [
+            SimulationResult(
+                experiment_id="test_0", mechanism="m.yaml",
+                species_histories={"CO2(12)": [0.001522]}, times=[1.0],
+            ),
+            SimulationResult(
+                experiment_id="test_1", mechanism="m.yaml",
+                species_histories={"CO2(12)": [0.9]}, times=[1.0],
+            ),
+        ]
+
+        exp_yaml = tmp_path / "exp.yaml"
+        exp_yaml.write_text(
+            "name: test\n"
+            "conditions:\n"
+            "  - reactor_type: shock_tube\n"
+            "    temperature_K: 1400.0\n"
+            "    pressure_atm: 1.5\n"
+            "    mixture:\n"
+            "      Ar: 0.99\n"
+            "    observable_type: species_profile\n"
+            "    observable_label: 'CO2(12)'\n"
+            "    measured_value: 0.001522\n"
+            "    error_threshold: 0.0005\n"
+            "  - reactor_type: shock_tube\n"
+            "    temperature_K: 1600.0\n"
+            "    pressure_atm: 1.5\n"
+            "    mixture:\n"
+            "      Ar: 0.99\n"
+            "    observable_type: species_profile\n"
+            "    observable_label: 'CO2(12)'\n"
+            "    measured_value: 0.004004\n"
+            "    error_threshold: 0.001\n"
+        )
+
+        parser = build_parser()
+        args = parser.parse_args([
+            "mae", "--model", "m.yaml", "--experiment", str(exp_yaml),
+        ])
+        from src.cli import _resolve_paths
+        _resolve_paths(args)
+
+        cmd_mae(args)
+
+        out = capsys.readouterr().out
+        assert "PASS" in out
+        assert "FAIL" in out
+        assert "1/2 conditions pass threshold" in out

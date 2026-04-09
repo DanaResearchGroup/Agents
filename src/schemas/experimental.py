@@ -660,6 +660,8 @@ class BranchResult(BaseModel):
     mae: float
     delta_mae: float
     improved: bool
+    threshold: float = 0.0
+    passed: bool = False
 
 
 class Path2Results(BaseModel):

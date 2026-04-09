@@ -76,6 +76,8 @@ def path2_results() -> Path2Results:
                 mae=0.03100000,
                 delta_mae=-0.01212345,
                 improved=True,
+                threshold=0.04,
+                passed=True,
             ),
             BranchResult(
                 branch_id="branch_002",
@@ -83,6 +85,8 @@ def path2_results() -> Path2Results:
                 mae=0.05000000,
                 delta_mae=0.00687655,
                 improved=False,
+                threshold=0.04,
+                passed=False,
             ),
         ],
         best_branch_id="branch_001",

@@ -1,0 +1,197 @@
+units: {length: cm, time: s, quantity: mol, activation-energy: cal/mol}
+
+phases:
+- name: gas
+  thermo: ideal-gas
+  elements: [H, C, O, Ar]
+  species: [HOCHO, CO2, CO, H2O, H2, OH, H, O, O2, HO2, H2O2, HCO, HOCO, Ar]
+  kinetics: gas
+  reactions: all
+  state: {T: 300.0, P: 101325.0}
+
+species:
+- name: HOCHO
+  composition: {H: 2, C: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [1.4359e+00, 1.6175e-02, -1.1734e-05, 4.2885e-09, -6.2863e-13, -4.6842e+04, 1.7985e+01]
+    - [4.6165e+00, 4.9542e-03, -1.7329e-06, 2.7340e-10, -1.6126e-14, -4.7892e+04, 1.6404e+00]
+
+- name: CO2
+  composition: {C: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.3568e+00, 8.9841e-03, -7.1220e-06, 2.4573e-09, -1.4288e-13, -4.8372e+04, 9.9009e+00]
+    - [4.6365e+00, 2.7414e-03, -9.9589e-07, 1.6038e-10, -9.1619e-15, -4.9024e+04, -1.9349e+00]
+
+- name: CO
+  composition: {C: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.5795e+00, -6.1035e-04, 1.0168e-06, 9.0700e-10, -9.0442e-13, -1.4344e+04, 3.5084e+00]
+    - [3.0484e+00, 1.3517e-03, -4.8579e-07, 7.8854e-11, -4.6981e-15, -1.4266e+04, 6.0170e+00]
+
+- name: H2O
+  composition: {H: 2, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.1986e+00, -2.0364e-03, 6.5203e-06, -5.4879e-09, 1.7720e-12, -3.0294e+04, -8.4900e-01]
+    - [2.6771e+00, 2.9731e-03, -7.7377e-07, 9.4433e-11, -4.2690e-15, -2.9886e+04, 6.8826e+00]
+
+- name: H2
+  composition: {H: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.3443e+00, 7.9804e-03, -1.9478e-05, 2.0157e-08, -7.3760e-12, -9.1792e+02, 6.8300e-01]
+    - [2.9328e+00, 8.2660e-04, -1.4640e-07, 1.5410e-11, -6.8880e-16, -8.1306e+02, -1.0243e+00]
+
+- name: OH
+  composition: {H: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.9920e+00, -2.4011e-03, 4.6166e-06, -3.8792e-09, 1.3641e-12, 3.3754e+03, -1.0399e-01]
+    - [2.8382e+00, 1.1086e-03, -2.9400e-07, 4.2069e-11, -2.4229e-15, 3.9443e+03, 5.8449e+00]
+
+- name: H
+  composition: {H: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.5000e+00, 0.0, 0.0, 0.0, 0.0, 2.5474e+04, -4.4668e-01]
+    - [2.5000e+00, 0.0, 0.0, 0.0, 0.0, 2.5474e+04, -4.4668e-01]
+
+- name: O
+  composition: {O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.1683e+00, -3.2798e-03, 6.6431e-06, -6.1281e-09, 2.1120e-12, 2.9122e+04, 2.0520e+00]
+    - [2.5427e+00, -2.7551e-05, -3.1028e-09, 4.5510e-12, -4.3681e-16, 2.9228e+04, 4.9203e+00]
+
+- name: O2
+  composition: {O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.7837e+00, -3.0234e-03, 9.9492e-06, -9.8190e-09, 3.3032e-12, -1.0638e+03, 3.6418e+00]
+    - [3.6122e+00, 7.4853e-04, -1.9821e-07, 3.3749e-11, -2.3907e-15, -1.1974e+03, 3.6703e+00]
+
+- name: HO2
+  composition: {H: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.3018e+00, -4.7490e-03, 2.1158e-05, -2.4276e-08, 9.2923e-12, 2.9480e+02, 3.7167e+00]
+    - [4.0172e+00, 2.2398e-03, -6.3365e-07, 1.1424e-10, -1.0791e-14, 1.1184e+02, 3.7851e+00]
+
+- name: H2O2
+  composition: {H: 2, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [3.3888e+00, 6.5692e-03, -1.4850e-07, -4.6258e-09, 2.4715e-12, -1.7663e+04, 6.7854e+00]
+    - [4.5732e+00, 4.0501e-03, -1.2985e-06, 1.9951e-10, -1.1599e-14, -1.8007e+04, 5.1105e-01]
+
+- name: HCO
+  composition: {H: 1, C: 1, O: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [4.2373e+00, -3.3229e-03, 1.4008e-05, -1.3424e-08, 4.4374e-12, 3.8721e+03, 3.3043e+00]
+    - [3.9200e+00, 2.5067e-03, -6.5882e-07, 7.0953e-11, -2.6076e-15, 3.6530e+03, 3.4401e+00]
+
+- name: HOCO
+  composition: {H: 1, C: 1, O: 2}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.9229e+00, 7.5889e-03, -2.6706e-06, -8.5698e-10, 7.0026e-13, -2.3013e+04, 1.1722e+01]
+    - [5.3748e+00, 3.2427e-03, -1.1762e-06, 1.9334e-10, -1.1863e-14, -2.3996e+04, -1.9447e+00]
+
+- name: Ar
+  composition: {Ar: 1}
+  thermo:
+    model: NASA7
+    temperature-ranges: [200, 1000, 6000]
+    data:
+    - [2.5000e+00, 0.0, 0.0, 0.0, 0.0, -7.4537e+02, 4.3797e+00]
+    - [2.5000e+00, 0.0, 0.0, 0.0, 0.0, -7.4537e+02, 4.3797e+00]
+
+reactions:
+- equation: HOCHO (+M) <=> CO + H2O (+M)
+  type: falloff
+  low-P-rate-constant: {A: 2.30e+13, b: 0.0, Ea: 50900.0}
+  high-P-rate-constant: {A: 1.50e+14, b: 0.0, Ea: 57200.0}
+
+- equation: HOCHO (+M) <=> CO2 + H2 (+M)
+  type: falloff
+  low-P-rate-constant: {A: 1.50e+13, b: 0.0, Ea: 51800.0}
+  high-P-rate-constant: {A: 3.00e+14, b: 0.0, Ea: 59200.0}
+
+- equation: HOCHO + OH <=> HOCO + H2O
+  rate-constant: {A: 2.62e+06, b: 2.06, Ea: 916.0}
+
+- equation: HOCHO + OH <=> CO2 + H + H2O
+  rate-constant: {A: 1.85e+07, b: 1.51, Ea: -962.0}
+
+- equation: HOCHO + H <=> HOCO + H2
+  rate-constant: {A: 4.91e+05, b: 2.44, Ea: 4030.0}
+
+- equation: HOCHO + H <=> CO2 + H2 + H
+  rate-constant: {A: 6.03e+13, b: -0.35, Ea: 2988.0}
+
+- equation: HOCHO + O <=> HOCO + OH
+  rate-constant: {A: 1.77e+05, b: 2.42, Ea: 1530.0}
+
+- equation: HOCHO + HO2 <=> HOCO + H2O2
+  rate-constant: {A: 1.00e+12, b: 0.0, Ea: 11920.0}
+
+- equation: HOCO <=> CO2 + H
+  rate-constant: {A: 1.57e+09, b: 1.28, Ea: 18170.0}
+
+- equation: HOCO + OH <=> CO2 + H2O
+  rate-constant: {A: 4.60e+12, b: 0.0, Ea: -89.0}
+
+- equation: HOCO + O2 <=> CO2 + HO2
+  rate-constant: {A: 9.21e+11, b: 0.0, Ea: 0.0}
+
+- equation: HCO + O2 <=> CO + HO2
+  rate-constant: {A: 7.58e+12, b: 0.0, Ea: 410.0}
+
+- equation: CO + OH <=> CO2 + H
+  rate-constant: {A: 7.00e+04, b: 2.05, Ea: -355.0}
+
+- equation: H + O2 <=> O + OH
+  rate-constant: {A: 2.64e+16, b: -0.67, Ea: 17041.0}
+
+- equation: H2 + OH <=> H + H2O
+  rate-constant: {A: 2.16e+08, b: 1.51, Ea: 3430.0}
+
+- equation: H + OH + M <=> H2O + M
+  type: three-body
+  rate-constant: {A: 2.20e+22, b: -2.0, Ea: 0.0}
+
+- equation: HO2 + H <=> OH + OH
+  rate-constant: {A: 7.08e+13, b: 0.0, Ea: 295.0}
+
+- equation: HO2 + OH <=> H2O + O2
+  rate-constant: {A: 2.89e+13, b: 0.0, Ea: -497.0}

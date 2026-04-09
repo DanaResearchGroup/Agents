@@ -31,6 +31,9 @@ class PaperRecord(BaseModel):
     citations: list[str] = Field(default_factory=list)
     pdf_path: str | None = None
     si_path: str | None = None
+    mechanism_files: list[str] = Field(default_factory=list)
+    best_mechanism_path: str | None = None
+    mechanism_format: Literal["cantera", "chemkin"] | None = None
 
 class SearchQuery(BaseModel):
     topic: str

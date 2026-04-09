@@ -22,6 +22,7 @@ from src.schemas.experimental import (
     PaperSummary,
     RunConfig,
 )
+from src.ingestion.utils import download_file
 from src.schemas.ingestion import PaperRecord, SearchQuery
 
 logger = logging.getLogger(__name__)
@@ -106,13 +107,37 @@ class Orchestrator:
             raise ValueError(f"Unknown paper source mode: {source.mode}")
 
     def _ingest_doi(self, doi: str) -> PaperRecord:
-        """Fetch paper metadata by DOI via OpenAlex."""
+        """Fetch paper metadata by DOI via OpenAlex and download the PDF."""
         client = OpenAlexClient()
         query = SearchQuery(topic=doi, max_results=1)
         results = client.search(query, limit=1)
         if not results:
             raise ValueError(f"No paper found for DOI: {doi}")
-        return client.normalize(results[0])
+
+        paper = client.normalize(results[0])
+
+        if paper.oa_url:
+            safe_doi = doi.replace("/", "_").replace(":", "_")
+            papers_dir = Path("data/papers")
+            downloaded = download_file(
+                paper.oa_url, papers_dir, f"{safe_doi}.pdf",
+            )
+            if downloaded:
+                paper.pdf_path = str(downloaded.resolve())
+                logger.info("Downloaded PDF to %s", paper.pdf_path)
+            else:
+                logger.warning(
+                    "PDF download failed for DOI %s from %s",
+                    doi, paper.oa_url,
+                )
+        else:
+            logger.warning(
+                "No open access PDF available for DOI %s — "
+                "paper text extraction will be limited",
+                doi,
+            )
+
+        return paper
 
     def _ingest_upload(self, file_path: str) -> PaperRecord:
         """Parse a local PDF and wrap it in a minimal PaperRecord."""

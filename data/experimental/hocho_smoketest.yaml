@@ -1,0 +1,36 @@
+name: HOCHO_Pyrolysis_SmokeTest
+source: "synthetic_from_chem_annotated_hocho — replace with real data"
+
+conditions:
+  - reactor_type: shock_tube
+    temperature_K: 1400.0
+    pressure_atm: 1.5
+    mixture:
+      "HOCHO(1)": 0.01
+      Ar: 0.99
+    observable_type: species_profile
+    observable_label: "CO2(12)"
+    measured_value: 0.001522
+    error_threshold: 0.0005
+
+  - reactor_type: shock_tube
+    temperature_K: 1600.0
+    pressure_atm: 1.5
+    mixture:
+      "HOCHO(1)": 0.01
+      Ar: 0.99
+    observable_type: species_profile
+    observable_label: "CO2(12)"
+    measured_value: 0.004004
+    error_threshold: 0.001
+
+  - reactor_type: shock_tube
+    temperature_K: 1800.0
+    pressure_atm: 1.5
+    mixture:
+      "HOCHO(1)": 0.01
+      Ar: 0.99
+    observable_type: species_profile
+    observable_label: "CO2(12)"
+    measured_value: 0.003973
+    error_threshold: 0.001

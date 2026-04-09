@@ -218,6 +218,11 @@ async def run_path2(
     baseline_mae = compute_mae(simulated, measured)
     successful_indices = {v[0] for v in baseline_values}
 
+    # Mean error_threshold across successfully-simulated conditions
+    mean_threshold = sum(
+        conditions[i].error_threshold for i, _, _ in baseline_values
+    ) / len(baseline_values)
+
     logger.info("Baseline MAE: %.6f (%d conditions)", baseline_mae, len(baseline_values))
 
     # ── Step 3: Create model branches ────────────────────────────────────
@@ -272,6 +277,8 @@ async def run_path2(
             mae=branch_mae,
             delta_mae=delta,
             improved=delta < 0,
+            threshold=mean_threshold,
+            passed=branch_mae <= mean_threshold,
         ))
 
     # ── Step 5: Build Path2Results ───────────────────────────────────────

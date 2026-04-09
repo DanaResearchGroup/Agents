@@ -99,6 +99,8 @@ class ReportGenerator:
                 "branch_id": br.branch_id,
                 "reactions_added": br.reactions_added,
                 "mae": _fmt_mae(br.mae),
+                "threshold": _fmt_mae(br.threshold),
+                "passed": br.passed,
                 "improvement": br.improved,
                 "delta_mae": _fmt_mae(br.delta_mae),
             })

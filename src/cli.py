@@ -121,6 +121,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output directory (default: data/papers)",
     )
 
+    # ── mae ──────────────────────────────────────────
+    mae_p = sub.add_parser("mae", help="Run simulation vs experimental MAE evaluation")
+    mae_p.add_argument(
+        "--model", required=True, type=Path,
+        help="Path to Cantera mechanism YAML file",
+    )
+    mae_p.add_argument(
+        "--experiment", required=True, type=Path,
+        help="Path to experimental data YAML file",
+    )
+    mae_p.add_argument(
+        "--end-time", type=float, default=1.0,
+        help="Simulation end time in seconds (default: 1.0)",
+    )
+
     return parser
 
 
@@ -242,6 +257,90 @@ def cmd_search(args: argparse.Namespace) -> None:
                 break
 
 
+_OBS_MAP: dict[str, str] = {
+    "idt": "ignition_delay",
+    "flame_speed": "flame_speed",
+    "species_profile": "species_profile",
+    "k_ext": "conversion",
+}
+
+
+def _extract_value(sim_result, cond) -> float | None:
+    """Extract a scalar observable value from a SimulationResult."""
+    obs = cond.observable_type.value
+    if obs == "species_profile":
+        label = cond.observable_label
+        if label and label in sim_result.species_histories:
+            history = sim_result.species_histories[label]
+            return history[-1] if history else None
+    elif obs == "idt":
+        # Ignition delay: time of max dT/dt
+        temps = sim_result.temperature_history
+        times = sim_result.times
+        if len(temps) >= 2:
+            max_dt, idt = 0.0, times[-1]
+            for i in range(1, len(temps)):
+                dt_val = (temps[i] - temps[i - 1]) / (times[i] - times[i - 1])
+                if dt_val > max_dt:
+                    max_dt = dt_val
+                    idt = times[i]
+            return idt
+    elif obs == "flame_speed":
+        return sim_result.extra.get("flame_speed")
+    return None
+
+
+def cmd_mae(args: argparse.Namespace) -> None:
+    """Run simulation vs experimental MAE evaluation."""
+    import yaml as _yaml
+    from src.schemas.experimental import ExperimentalDataset
+    from src.simulation.core.simulation_spec import SimulationSpec
+    from src.simulation.core.runner import run_simulation
+
+    raw = _yaml.safe_load(args.experiment.read_text())
+    dataset = ExperimentalDataset(**raw)
+    mechanism = str(args.model)
+
+    pass_count = 0
+    total = len(dataset.conditions)
+
+    for i, cond in enumerate(dataset.conditions):
+        temp = cond.temperature_K if isinstance(cond.temperature_K, (int, float)) else cond.temperature_K[0]
+        pres = cond.pressure_atm if isinstance(cond.pressure_atm, (int, float)) else cond.pressure_atm[0]
+        measured = cond.measured_value if isinstance(cond.measured_value, (int, float)) else cond.measured_value[0]
+
+        spec = SimulationSpec(
+            experiment_id=f"{dataset.name}_{i}",
+            reactor_type=cond.reactor_type.value,
+            observable=_OBS_MAP.get(cond.observable_type.value, cond.observable_type.value),
+            observable_species=cond.observable_label,
+            temperature=temp,
+            pressure=pres * 101325.0,
+            composition=cond.mixture,
+            end_time=args.end_time,
+        )
+
+        sim_result = run_simulation(spec, mechanism)
+
+        if not sim_result.success:
+            print(f"T={temp}K P={pres}atm | ERROR: {sim_result.error}")
+            continue
+
+        simulated = _extract_value(sim_result, cond)
+        if simulated is None:
+            print(f"T={temp}K P={pres}atm | ERROR: could not extract observable")
+            continue
+
+        mae = abs(simulated - measured)
+        passed = mae <= cond.error_threshold
+        if passed:
+            pass_count += 1
+        status = "PASS" if passed else "FAIL"
+        print(f"T={temp}K P={pres}atm | simulated={simulated:.6f} | measured={measured:.6f} | MAE={mae:.6f} | threshold={cond.error_threshold} | {status}")
+
+    print(f"\n{pass_count}/{total} conditions pass threshold")
+
+
 def main(argv: list[str] | None = None) -> None:
     """Entry point for chem-agent command."""
     parser = build_parser()
@@ -258,6 +357,7 @@ def main(argv: list[str] | None = None) -> None:
         "validate-model": cmd_validate_model,
         "convert": cmd_convert,
         "search": cmd_search,
+        "mae": cmd_mae,
     }
     commands[args.command](args)
 

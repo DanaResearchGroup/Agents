@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -329,6 +330,92 @@ class RegistryBuilder:
             filepath = download_file(download_url, si_dir, fname)
             note = f" Saved SI to {filepath.name}. " if filepath else f" Failed download {i}. "
             record.access_notes = (record.access_notes or "") + note
+
+            # Inspect ZIPs for mechanism files.
+            if filepath and zipfile.is_zipfile(filepath):
+                extract_dir = si_dir / f"{safe_id}_extracted_{i}"
+                extract_dir.mkdir(parents=True, exist_ok=True)
+                found = self._extract_mechanism_from_zip(filepath, extract_dir)
+                record.mechanism_files.extend(str(p) for p in found)
+                logger.info(
+                    "   [SI] %d mechanism files extracted from %s",
+                    len(found), filepath.name,
+                )
+                if not found:
+                    logger.info(
+                        "   [SI] No mechanism files in %s (images/figures only)",
+                        filepath.name,
+                    )
+
+        # Select the best mechanism across all extracted files.
+        if record.mechanism_files:
+            self._select_best_mechanism(record)
+
+    def _extract_mechanism_from_zip(
+        self, zip_path: Path, extract_dir: Path,
+    ) -> list[Path]:
+        """Recursively extract chemistry files from ZIP and nested ZIPs.
+
+        Returns list of extracted mechanism file paths.
+        """
+        _CHEMKIN_EXT = {".inp", ".dat", ".ck"}
+        _CANTERA_EXT = {".yaml", ".yml"}
+        _CHEMKIN_KEYWORDS = {"ELEMENTS", "SPECIES", "REACTIONS", "THERMO"}
+        found: list[Path] = []
+
+        try:
+            with zipfile.ZipFile(zip_path) as zf:
+                for name in zf.namelist():
+                    ext = Path(name).suffix.lower()
+
+                    if ext == ".zip":
+                        zf.extract(name, extract_dir)
+                        nested_path = extract_dir / name
+                        found.extend(
+                            self._extract_mechanism_from_zip(nested_path, extract_dir)
+                        )
+                    elif ext in _CHEMKIN_EXT:
+                        zf.extract(name, extract_dir)
+                        found.append(extract_dir / name)
+                        logger.info("   [SI] Found mechanism file: %s", name)
+                    elif ext in _CANTERA_EXT:
+                        zf.extract(name, extract_dir)
+                        found.append(extract_dir / name)
+                        logger.info("   [SI] Found Cantera file: %s", name)
+                    elif ext == ".txt":
+                        preview = zf.read(name)[:500].decode("utf-8", errors="ignore")
+                        if any(kw in preview.upper() for kw in _CHEMKIN_KEYWORDS):
+                            zf.extract(name, extract_dir)
+                            found.append(extract_dir / name)
+                            logger.info("   [SI] Found Chemkin-format TXT: %s", name)
+        except zipfile.BadZipFile:
+            logger.warning("   [SI] Bad ZIP file: %s", zip_path.name)
+
+        return found
+
+    @staticmethod
+    def _select_best_mechanism(record: PaperRecord) -> None:
+        """Set best_mechanism_path and mechanism_format based on priority.
+
+        Priority: .yaml/.yml (Cantera) > .inp/.dat/.ck (Chemkin).
+        Skip .cti (deprecated).
+        """
+        cantera_exts = {".yaml", ".yml"}
+        chemkin_exts = {".inp", ".dat", ".ck"}
+
+        for path_str in record.mechanism_files:
+            ext = Path(path_str).suffix.lower()
+            if ext in cantera_exts:
+                record.best_mechanism_path = path_str
+                record.mechanism_format = "cantera"
+                return
+
+        for path_str in record.mechanism_files:
+            ext = Path(path_str).suffix.lower()
+            if ext in chemkin_exts or ext == ".txt":
+                record.best_mechanism_path = path_str
+                record.mechanism_format = "chemkin"
+                return
 
     def _download_paper(self, record: PaperRecord, papers_dir: Path) -> None:
         if not record.oa_url:
