@@ -75,6 +75,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to YAML file mapping original model species to literature "
              "model names (e.g. {'NH3(1)': 'NH3', 'O2(6)': 'O2'}).",
     )
+    run_p.add_argument(
+        "--browser-auth", action="store_true", default=False,
+        help="Use browser cookies for authenticated PDF downloads (institutional access).",
+    )
 
     # ── validate-model ──────────────────────────────
     val_p = sub.add_parser("validate-model", help="Quick model sanity check")
@@ -136,6 +140,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Simulation end time in seconds (default: 1.0)",
     )
 
+    # ── download ─────────────────────────────────────
+    dl_p = sub.add_parser("download", help="Download a paper PDF by DOI")
+    dl_p.add_argument(
+        "--doi", required=True, type=str,
+        help="DOI of the paper to download (e.g. 10.1021/acsomega.5c11182)",
+    )
+    dl_p.add_argument(
+        "--output", type=Path, default=Path("data/papers"),
+        help="Output directory (default: data/papers)",
+    )
+    dl_p.add_argument(
+        "--browser-auth", action="store_true", default=False,
+        help="Use browser cookies for authenticated PDF downloads.",
+    )
+
     return parser
 
 
@@ -190,6 +209,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         literature_model=args.literature_model,
         species_aliases=aliases,
         literature_aliases=lit_aliases,
+        browser_auth=args.browser_auth,
     )
     orchestrator = Orchestrator(config)
     report_path = asyncio.run(orchestrator.run())
@@ -341,6 +361,40 @@ def cmd_mae(args: argparse.Namespace) -> None:
     print(f"\n{pass_count}/{total} conditions pass threshold")
 
 
+def cmd_download(args: argparse.Namespace) -> None:
+    """Download a paper PDF by DOI, optionally using browser cookies."""
+    from src.ingestion.retrieval import CrossrefClient, OpenAlexClient
+    from src.ingestion.utils import download_file
+
+    doi = args.doi
+    client = OpenAlexClient()
+    paper = client.get_by_doi(doi)
+
+    if paper is None:
+        crossref = CrossrefClient()
+        paper = crossref.search_by_doi(doi)
+
+    if paper is None:
+        print(f"No paper found for DOI: {doi}", file=sys.stderr)
+        sys.exit(1)
+
+    url = paper.oa_url or paper.source_url
+    if not url:
+        print(f"No download URL available for DOI: {doi}", file=sys.stderr)
+        sys.exit(1)
+
+    safe_doi = doi.replace("/", "_").replace(":", "_")
+    result = download_file(
+        url, args.output, f"{safe_doi}.pdf",
+        use_browser_auth=args.browser_auth,
+    )
+    if result:
+        print(f"Downloaded: {result}")
+    else:
+        print(f"Download failed for {url}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main(argv: list[str] | None = None) -> None:
     """Entry point for chem-agent command."""
     parser = build_parser()
@@ -358,6 +412,7 @@ def main(argv: list[str] | None = None) -> None:
         "convert": cmd_convert,
         "search": cmd_search,
         "mae": cmd_mae,
+        "download": cmd_download,
     }
     commands[args.command](args)
 

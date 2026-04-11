@@ -608,6 +608,7 @@ class RunConfig(BaseModel):
     literature_model: Path | None = None
     species_aliases: dict[str, str] = Field(default_factory=dict)
     literature_aliases: dict[str, str] = Field(default_factory=dict)
+    browser_auth: bool = False
 
 
 # ── Condition extraction models ──────────────────────────────────────────────

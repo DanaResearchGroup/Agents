@@ -118,24 +118,64 @@ def test_init_success(make_config, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_ingest_doi(make_config, monkeypatch):
+async def test_ingest_doi_openalex_direct(make_config, monkeypatch):
+    """OpenAlex get_by_doi returns a paper — no fallback needed."""
     monkeypatch.setattr(
         "src.orchestrator.LLMClient.__init__",
         lambda self, **kwargs: setattr(self, "config", LLMConfig()),
     )
     paper = _fake_paper()
     monkeypatch.setattr(
-        "src.orchestrator.OpenAlexClient.search",
-        lambda self, query, limit=None: [{"id": "w1", "title": "Test Paper"}],
-    )
-    monkeypatch.setattr(
-        "src.orchestrator.OpenAlexClient.normalize",
-        lambda self, item: paper,
+        "src.orchestrator.OpenAlexClient.get_by_doi",
+        lambda self, doi: paper,
     )
 
     orch = Orchestrator(make_config())
     result = await orch.ingest_paper(PaperSource(mode="doi", value="10.1234/test"))
     assert result.title == "Test Paper"
+
+
+@pytest.mark.asyncio
+async def test_ingest_doi_crossref_fallback(make_config, monkeypatch):
+    """OpenAlex returns None, Crossref fallback succeeds."""
+    monkeypatch.setattr(
+        "src.orchestrator.LLMClient.__init__",
+        lambda self, **kwargs: setattr(self, "config", LLMConfig()),
+    )
+    paper = _fake_paper(title="Crossref Paper")
+    monkeypatch.setattr(
+        "src.orchestrator.OpenAlexClient.get_by_doi",
+        lambda self, doi: None,
+    )
+    monkeypatch.setattr(
+        "src.orchestrator.CrossrefClient.search_by_doi",
+        lambda self, doi: paper,
+    )
+
+    orch = Orchestrator(make_config())
+    result = await orch.ingest_paper(PaperSource(mode="doi", value="10.1234/test"))
+    assert result.title == "Crossref Paper"
+
+
+@pytest.mark.asyncio
+async def test_ingest_doi_both_fail(make_config, monkeypatch):
+    """Both OpenAlex and Crossref return None — ValueError raised."""
+    monkeypatch.setattr(
+        "src.orchestrator.LLMClient.__init__",
+        lambda self, **kwargs: setattr(self, "config", LLMConfig()),
+    )
+    monkeypatch.setattr(
+        "src.orchestrator.OpenAlexClient.get_by_doi",
+        lambda self, doi: None,
+    )
+    monkeypatch.setattr(
+        "src.orchestrator.CrossrefClient.search_by_doi",
+        lambda self, doi: None,
+    )
+
+    orch = Orchestrator(make_config())
+    with pytest.raises(ValueError, match="No paper found for DOI"):
+        await orch.ingest_paper(PaperSource(mode="doi", value="10.9999/nope"))
 
 
 @pytest.mark.asyncio
@@ -147,18 +187,14 @@ async def test_ingest_doi_downloads_pdf(make_config, monkeypatch, workspace):
     paper = _fake_paper()
     paper.oa_url = "https://example.com/paper.pdf"
     monkeypatch.setattr(
-        "src.orchestrator.OpenAlexClient.search",
-        lambda self, query, limit=None: [{"id": "w1", "title": "Test Paper"}],
-    )
-    monkeypatch.setattr(
-        "src.orchestrator.OpenAlexClient.normalize",
-        lambda self, item: paper,
+        "src.orchestrator.OpenAlexClient.get_by_doi",
+        lambda self, doi: paper,
     )
     downloaded_path = workspace["tmp_path"] / "downloaded.pdf"
     downloaded_path.write_text("fake pdf")
     monkeypatch.setattr(
         "src.orchestrator.download_file",
-        lambda url, outdir, fname: downloaded_path,
+        lambda url, outdir, fname, **kwargs: downloaded_path,
     )
 
     orch = Orchestrator(make_config())
@@ -176,34 +212,14 @@ async def test_ingest_doi_no_oa_url(make_config, monkeypatch):
     paper = _fake_paper()
     paper.oa_url = None
     monkeypatch.setattr(
-        "src.orchestrator.OpenAlexClient.search",
-        lambda self, query, limit=None: [{"id": "w1", "title": "Test Paper"}],
-    )
-    monkeypatch.setattr(
-        "src.orchestrator.OpenAlexClient.normalize",
-        lambda self, item: paper,
+        "src.orchestrator.OpenAlexClient.get_by_doi",
+        lambda self, doi: paper,
     )
 
     orch = Orchestrator(make_config())
     result = await orch.ingest_paper(PaperSource(mode="doi", value="10.1234/test"))
     assert result.pdf_path is None
-    assert result.title == "Test Paper"  # still returns the paper
-
-
-@pytest.mark.asyncio
-async def test_ingest_doi_not_found(make_config, monkeypatch):
-    monkeypatch.setattr(
-        "src.orchestrator.LLMClient.__init__",
-        lambda self, **kwargs: setattr(self, "config", LLMConfig()),
-    )
-    monkeypatch.setattr(
-        "src.orchestrator.OpenAlexClient.search",
-        lambda self, query, limit=None: [],
-    )
-
-    orch = Orchestrator(make_config())
-    with pytest.raises(ValueError, match="No paper found for DOI"):
-        await orch.ingest_paper(PaperSource(mode="doi", value="10.9999/nope"))
+    assert result.title == "Test Paper"
 
 
 # ── Paper ingestion: upload mode ────────────────────────────────────────────

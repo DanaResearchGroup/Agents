@@ -11,7 +11,7 @@ import yaml
 from src.agents.llm_client import LLMClient
 from src.agents.paper_reader import read_paper
 from src.ingestion.pdf_parser import parse_pdf
-from src.ingestion.retrieval import OpenAlexClient
+from src.ingestion.retrieval import CrossrefClient, OpenAlexClient
 from src.pipelines.path1 import run_path1
 from src.pipelines.path2 import run_path2
 from src.report import ReportGenerator
@@ -107,20 +107,25 @@ class Orchestrator:
             raise ValueError(f"Unknown paper source mode: {source.mode}")
 
     def _ingest_doi(self, doi: str) -> PaperRecord:
-        """Fetch paper metadata by DOI via OpenAlex and download the PDF."""
+        """Fetch paper metadata by DOI via direct lookup (OpenAlex, then Crossref)."""
+        # Try OpenAlex direct DOI lookup first
         client = OpenAlexClient()
-        query = SearchQuery(topic=doi, max_results=1)
-        results = client.search(query, limit=1)
-        if not results:
-            raise ValueError(f"No paper found for DOI: {doi}")
+        paper = client.get_by_doi(doi)
 
-        paper = client.normalize(results[0])
+        if paper is None:
+            # Fallback: Crossref direct DOI lookup
+            crossref = CrossrefClient()
+            paper = crossref.search_by_doi(doi)
+
+        if paper is None:
+            raise ValueError(f"No paper found for DOI: {doi}")
 
         if paper.oa_url:
             safe_doi = doi.replace("/", "_").replace(":", "_")
             papers_dir = Path("data/papers")
             downloaded = download_file(
                 paper.oa_url, papers_dir, f"{safe_doi}.pdf",
+                use_browser_auth=self.config.browser_auth,
             )
             if downloaded:
                 paper.pdf_path = str(downloaded.resolve())

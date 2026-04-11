@@ -223,6 +223,13 @@ All code migrated to src/. Legacy dirs removed: simulator_agent/, literature_age
 
 ---
 
+## Environment
+
+- **Always** use `conda run -n agent_env` for all Python commands (pytest, pip, python).
+- **Never** install packages into the base conda environment.
+
+---
+
 ## Key contacts / references
 
 - T3 fix_cantera.py: https://github.com/ReactionMechanismGenerator/T3/blob/main/t3/utils/fix_cantera.py

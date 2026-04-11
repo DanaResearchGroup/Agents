@@ -34,6 +34,23 @@ class CrossrefClient:
             logger.error(f"Crossref Search Error: {e}")
             return []
 
+    def search_by_doi(self, doi: str) -> PaperRecord | None:
+        """Direct DOI lookup via Crossref /works/{doi} endpoint."""
+        url = f"{self.base_url}/{doi}"
+        try:
+            resp = requests.get(
+                url, params={"mailto": self.mailto}, timeout=10,
+            )
+            if resp.status_code != 200:
+                return None
+            item = resp.json().get("message")
+            if not item:
+                return None
+            return self.normalize(item)
+        except Exception as e:
+            logger.error("Crossref DOI lookup error: %s", e)
+            return None
+
     def normalize(self, item: dict[str, Any]) -> PaperRecord:
         doi = item.get("DOI")
         title = item.get("title", ["Untitled"])[0]
@@ -59,6 +76,28 @@ class OpenAlexClient:
         self.base_url = "https://api.openalex.org/works"
         self.mailto = mailto
 
+    def get_by_doi(self, doi: str) -> PaperRecord | None:
+        """Direct DOI lookup via OpenAlex filter API."""
+        params = {
+            "filter": f"doi:{doi}",
+            "per_page": 1,
+            "mailto": self.mailto,
+        }
+        try:
+            resp = requests.get(
+                self.base_url, params=params,
+                headers={"Accept": "application/json"}, timeout=10,
+            )
+            if resp.status_code != 200:
+                return None
+            results = resp.json().get("results", [])
+            if not results:
+                return None
+            return self.normalize(results[0])
+        except Exception as e:
+            logger.error("OpenAlex DOI lookup error: %s", e)
+            return None
+
     def search(self, query: SearchQuery, limit: int = None) -> list[dict]:
         limit = limit or query.max_results
         # Boolean Mode: Wrap terms in quotes and join with AND for exact matching
@@ -77,6 +116,7 @@ class OpenAlexClient:
         except Exception as e:
             logger.error(f"OpenAlex Search Error: {e}")
             return []
+
     def get_works(self, work_ids: List[str]) -> List[dict[str, Any]]:
         if not work_ids: return []
         # Filter out full URIs to get short IDs

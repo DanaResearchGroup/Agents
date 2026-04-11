@@ -100,13 +100,30 @@ _DOWNLOAD_HEADERS = {
 }
 
 
-def download_file(url: str, outdir: Path, filename: str) -> Path | None:
-    """Download a file from a URL, mimicking a browser."""
+def download_file(
+    url: str,
+    outdir: Path,
+    filename: str,
+    use_browser_auth: bool = False,
+) -> Path | None:
+    """Download a file from a URL, mimicking a browser.
+
+    If *use_browser_auth* is True and the server returns 403,
+    retry using browser cookies for institutional access.
+    """
     try:
         response = requests.get(
             url, headers=_DOWNLOAD_HEADERS, timeout=30,
             stream=True, allow_redirects=True,
         )
+
+        if response.status_code == 403 and use_browser_auth:
+            logger.info("Got 403, retrying with browser cookies…")
+            from src.ingestion.browser_cookies import download_with_browser_auth
+
+            dest = Path(outdir) / filename
+            return download_with_browser_auth(url, dest)
+
         response.raise_for_status()
 
         content_type = response.headers.get("Content-Type", "").lower()
